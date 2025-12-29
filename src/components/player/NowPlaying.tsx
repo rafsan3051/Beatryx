@@ -29,9 +29,10 @@ function formatTime(seconds: number): string {
 interface NowPlayingProps {
   isExpanded: boolean;
   onCollapse: () => void;
+  onOpenQueue?: () => void;
 }
 
-export function NowPlaying({ isExpanded, onCollapse }: NowPlayingProps) {
+export function NowPlaying({ isExpanded, onCollapse, onOpenQueue }: NowPlayingProps) {
   const { 
     currentTrack, 
     isPlaying, 
@@ -83,7 +84,7 @@ export function NowPlaying({ isExpanded, onCollapse }: NowPlayingProps) {
               <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                 Now Playing
               </span>
-              <button className="p-2 -mr-2 rounded-full hover:bg-secondary transition-colors">
+              <button onClick={onOpenQueue} className="p-2 -mr-2 rounded-full hover:bg-secondary transition-colors">
                 <ListMusic className="w-6 h-6 text-foreground" />
               </button>
             </div>
