@@ -11,10 +11,13 @@ import {
   Heart, 
   ListMusic,
   ChevronDown,
-  Volume2
+  Volume2,
+  Timer
 } from 'lucide-react';
 import { usePlayer } from '@/contexts/PlayerContext';
+import { useSleepTimer } from '@/contexts/SleepTimerContext';
 import { Slider } from '@/components/ui/slider';
+import { SleepTimerModal } from './SleepTimerModal';
 import { cn } from '@/lib/utils';
 
 function formatTime(seconds: number): string {
@@ -44,7 +47,15 @@ export function NowPlaying({ isExpanded, onCollapse }: NowPlayingProps) {
     toggleRepeat
   } = usePlayer();
 
+  const { sleepTimerMinutes, remainingTime } = useSleepTimer();
   const [isLiked, setIsLiked] = useState(false);
+  const [showSleepTimer, setShowSleepTimer] = useState(false);
+
+  const formatTimerDisplay = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   if (!currentTrack) return null;
 
@@ -195,6 +206,24 @@ export function NowPlaying({ isExpanded, onCollapse }: NowPlayingProps) {
                   )} 
                 />
               </button>
+
+              {/* Sleep Timer Button */}
+              <button
+                onClick={() => setShowSleepTimer(true)}
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-full transition-colors",
+                  sleepTimerMinutes !== null
+                    ? "bg-primary/10 text-primary"
+                    : "hover:bg-secondary text-muted-foreground"
+                )}
+              >
+                <Timer className="w-5 h-5" />
+                {sleepTimerMinutes !== null && (
+                  <span className="text-sm font-medium">
+                    {formatTimerDisplay(remainingTime)}
+                  </span>
+                )}
+              </button>
               
               <div className="flex items-center gap-2">
                 <Volume2 className="w-5 h-5 text-muted-foreground" />
@@ -204,6 +233,12 @@ export function NowPlaying({ isExpanded, onCollapse }: NowPlayingProps) {
               </div>
             </div>
           </div>
+
+          {/* Sleep Timer Modal */}
+          <SleepTimerModal
+            isOpen={showSleepTimer}
+            onClose={() => setShowSleepTimer(false)}
+          />
         </motion.div>
       )}
     </AnimatePresence>
