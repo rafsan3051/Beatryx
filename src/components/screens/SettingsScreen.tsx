@@ -2,9 +2,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   Sun, Moon, Monitor, Palette, Bell, Download, Shield, HelpCircle,
-  ChevronRight, Music, Headphones, Check, Paintbrush
+  ChevronRight, Music, Headphones, Check, Paintbrush, Image
 } from 'lucide-react';
-import { useTheme, accentColors, appThemes } from '@/contexts/ThemeContext';
+import { useTheme, accentColors, appThemes, appIcons, type AppIcon } from '@/contexts/ThemeContext';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
@@ -29,8 +29,18 @@ const appThemesList = [
   { id: 'monochrome', name: 'Mono', emoji: '⬛' },
 ] as const;
 
+const appIconsList: { id: AppIcon; name: string }[] = [
+  { id: 'default', name: 'Disc' },
+  { id: 'smartphone', name: 'Mobile' },
+  { id: 'song-outline', name: 'Note Outline' },
+  { id: 'song', name: 'Note Filled' },
+  { id: 'music', name: 'Music' },
+  { id: 'disc-outline', name: 'Disc Outline' },
+  { id: 'square', name: 'Square' },
+];
+
 export function SettingsScreen() {
-  const { theme, setTheme, accentColor, setAccentColor, appTheme, setAppTheme } = useTheme();
+  const { theme, setTheme, accentColor, setAccentColor, appTheme, setAppTheme, appIcon, setAppIcon } = useTheme();
 
   const themeOptions = [
     { id: 'light', label: 'Light', icon: Sun },
@@ -81,7 +91,7 @@ export function SettingsScreen() {
           </div>
         </div>
 
-        <div>
+        <div className="mb-6">
           <p className="text-sm text-muted-foreground mb-3">Theme Style</p>
           <div className="grid grid-cols-4 gap-2">
             {appThemesList.map(({ id, name, emoji }) => (
@@ -91,6 +101,35 @@ export function SettingsScreen() {
                 )}>
                 <span className="text-lg">{emoji}</span>
                 <span className="text-xs font-medium">{name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <p className="text-sm text-muted-foreground mb-3 flex items-center gap-2">
+            <Image className="w-4 h-4" />
+            App Icon
+          </p>
+          <div className="grid grid-cols-4 gap-3">
+            {appIconsList.map(({ id, name }) => (
+              <button key={id} onClick={() => setAppIcon(id)}
+                className={cn("relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all",
+                  appIcon === id 
+                    ? "bg-primary/20 ring-2 ring-primary" 
+                    : "bg-secondary hover:bg-secondary/80"
+                )}>
+                <img 
+                  src={appIcons[id]} 
+                  alt={name} 
+                  className="w-10 h-10 rounded-lg"
+                />
+                <span className="text-xs font-medium text-foreground truncate w-full text-center">{name}</span>
+                {appIcon === id && (
+                  <div className="absolute top-1 right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                    <Check className="w-3 h-3 text-primary-foreground" />
+                  </div>
+                )}
               </button>
             ))}
           </div>
