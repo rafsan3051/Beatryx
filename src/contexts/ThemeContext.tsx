@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 type Theme = 'light' | 'dark' | 'system';
 type AccentColor = 'coral' | 'blue' | 'purple' | 'green' | 'pink' | 'amber' | 'cyan' | 'rose';
 type AppTheme = 'default' | 'midnight' | 'forest' | 'sunset' | 'ocean' | 'lavender' | 'monochrome';
+type AppIcon = 'default' | 'smartphone' | 'song-outline' | 'song' | 'music' | 'disc-outline' | 'square';
 
 interface ThemeContextType {
   theme: Theme;
@@ -11,10 +12,23 @@ interface ThemeContextType {
   setAccentColor: (color: AccentColor) => void;
   appTheme: AppTheme;
   setAppTheme: (theme: AppTheme) => void;
+  appIcon: AppIcon;
+  setAppIcon: (icon: AppIcon) => void;
   actualTheme: 'light' | 'dark';
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+// App icons configuration
+const appIcons: Record<AppIcon, string> = {
+  'default': '/icons/icon-default.png',
+  'smartphone': '/icons/icon-smartphone.png',
+  'song-outline': '/icons/icon-song-outline.png',
+  'song': '/icons/icon-song.png',
+  'music': '/icons/icon-music.png',
+  'disc-outline': '/icons/icon-disc-outline.png',
+  'square': '/icons/icon-square.png',
+};
 
 // Accent colors with HSL values
 const accentColors: Record<AccentColor, { primary: string; accent: string }> = {
@@ -149,6 +163,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return (stored as AppTheme) || 'default';
   });
 
+  const [appIcon, setAppIcon] = useState<AppIcon>(() => {
+    const stored = localStorage.getItem('appIcon');
+    return (stored as AppIcon) || 'default';
+  });
+
   const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('dark');
 
   // Apply theme mode (light/dark)
@@ -204,6 +223,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('appTheme', appTheme);
   }, [appTheme, actualTheme]);
 
+  // Apply app icon
+  useEffect(() => {
+    const iconPath = appIcons[appIcon];
+    
+    // Update favicon
+    const favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    const appleTouchIcon = document.querySelector<HTMLLinkElement>('link[rel="apple-touch-icon"]');
+    
+    if (favicon) favicon.href = iconPath;
+    if (appleTouchIcon) appleTouchIcon.href = iconPath;
+    
+    localStorage.setItem('appIcon', appIcon);
+  }, [appIcon]);
+
   return (
     <ThemeContext.Provider value={{ 
       theme, 
@@ -212,6 +245,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setAccentColor, 
       appTheme, 
       setAppTheme,
+      appIcon,
+      setAppIcon,
       actualTheme 
     }}>
       {children}
@@ -227,5 +262,5 @@ export function useTheme() {
   return context;
 }
 
-export { accentColors, appThemes };
-export type { AccentColor, AppTheme, Theme };
+export { accentColors, appThemes, appIcons };
+export type { AccentColor, AppTheme, Theme, AppIcon };
