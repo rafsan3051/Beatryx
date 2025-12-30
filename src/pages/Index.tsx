@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { BottomNav } from '@/components/navigation/BottomNav';
 import { MiniPlayer } from '@/components/player/MiniPlayer';
 import { NowPlaying } from '@/components/player/NowPlaying';
 import { QueueManager } from '@/components/player/QueueManager';
+import { SplashScreen } from '@/components/SplashScreen';
 import { HomeScreen } from '@/components/screens/HomeScreen';
 import { SearchScreen } from '@/components/screens/SearchScreen';
 import { LibraryScreen } from '@/components/screens/LibraryScreen';
@@ -13,6 +15,7 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 type Tab = 'home' | 'search' | 'library' | 'settings';
 
 const Index = () => {
+  const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [isNowPlayingExpanded, setIsNowPlayingExpanded] = useState(false);
   const [isQueueOpen, setIsQueueOpen] = useState(false);
@@ -27,7 +30,7 @@ const Index = () => {
     onSeekBackward: (seconds) => seek(Math.max(0, currentTime - seconds)),
     onVolumeUp: () => setVolume(Math.min(1, volume + 0.1)),
     onVolumeDown: () => setVolume(Math.max(0, volume - 0.1)),
-    enabled: true,
+    enabled: !showSplash,
   });
 
   const renderScreen = () => {
@@ -41,22 +44,30 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="px-4 pb-4 max-w-lg mx-auto">{renderScreen()}</main>
-      
-      {currentTrack && !isNowPlayingExpanded && (
-        <MiniPlayer onClick={() => setIsNowPlayingExpanded(true)} />
-      )}
-      
-      <NowPlaying 
-        isExpanded={isNowPlayingExpanded} 
-        onCollapse={() => setIsNowPlayingExpanded(false)}
-        onOpenQueue={() => setIsQueueOpen(true)}
-      />
-      
-      <QueueManager isOpen={isQueueOpen} onClose={() => setIsQueueOpen(false)} />
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
-    </div>
+    <>
+      <AnimatePresence>
+        {showSplash && (
+          <SplashScreen onComplete={() => setShowSplash(false)} />
+        )}
+      </AnimatePresence>
+
+      <div className={`min-h-screen bg-background ${showSplash ? 'hidden' : ''}`}>
+        <main className="px-4 pb-4 max-w-lg mx-auto">{renderScreen()}</main>
+        
+        {currentTrack && !isNowPlayingExpanded && (
+          <MiniPlayer onClick={() => setIsNowPlayingExpanded(true)} />
+        )}
+        
+        <NowPlaying 
+          isExpanded={isNowPlayingExpanded} 
+          onCollapse={() => setIsNowPlayingExpanded(false)}
+          onOpenQueue={() => setIsQueueOpen(true)}
+        />
+        
+        <QueueManager isOpen={isQueueOpen} onClose={() => setIsQueueOpen(false)} />
+        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>
+    </>
   );
 };
 

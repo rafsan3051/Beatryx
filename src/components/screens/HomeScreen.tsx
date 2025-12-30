@@ -1,11 +1,36 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { PlaylistCard } from '@/components/library/PlaylistCard';
 import { TrackList } from '@/components/library/TrackList';
+import { Header } from '@/components/Header';
 import { usePlayer } from '@/contexts/PlayerContext';
+import { useLocalFiles } from '@/hooks/useLocalFiles';
+import { toast } from 'sonner';
 
 export function HomeScreen() {
-  const { queue } = usePlayer();
+  const { queue, removeFromQueue, addToQueue } = usePlayer();
+
+  const handleNewFilesDetected = useCallback((newTracks: any[]) => {
+    newTracks.forEach(track => addToQueue(track));
+    toast.success(`${newTracks.length} new track${newTracks.length > 1 ? 's' : ''} added!`);
+  }, [addToQueue]);
+
+  const { isRefreshing, refreshLibrary } = useLocalFiles({
+    autoRefreshInterval: 30000,
+    onNewFilesDetected: handleNewFilesDetected,
+  });
+
+  const handleRefresh = async () => {
+    const newTracks = await refreshLibrary();
+    if (newTracks.length === 0) {
+      toast.info('No new music files found');
+    }
+  };
+
+  const handleDeleteTrack = (trackId: string) => {
+    removeFromQueue(trackId);
+    toast.success('Track removed from library');
+  };
 
   const recentPlaylists = [
     {
@@ -39,20 +64,9 @@ export function HomeScreen() {
   ];
 
   return (
-    <div className="flex flex-col gap-8 pb-40">
-      {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="pt-4"
-      >
-        <h1 className="text-3xl font-bold text-foreground">
-          Good evening
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          What would you like to listen to?
-        </p>
-      </motion.div>
+    <div className="flex flex-col gap-6 pb-40">
+      {/* Header with Logo */}
+      <Header onRefresh={handleRefresh} isRefreshing={isRefreshing} />
 
       {/* Quick Access */}
       <section>
@@ -95,9 +109,14 @@ export function HomeScreen() {
         </div>
       </section>
 
-      {/* Recently Played */}
+      {/* Recently Played with delete option */}
       <section>
-        <TrackList tracks={queue} title="Recently Played" />
+        <TrackList 
+          tracks={queue} 
+          title="Your Music" 
+          onDeleteTrack={handleDeleteTrack}
+          showDelete={true}
+        />
       </section>
     </div>
   );
