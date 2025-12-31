@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ListMusic, Heart, Clock, Plus, Grid, List, Music } from 'lucide-react';
+import { ListMusic, Heart, Clock, Plus, Grid, List, Music, FolderSearch, Upload } from 'lucide-react';
 import { TrackList } from '@/components/library/TrackList';
 import { PlaylistCard } from '@/components/library/PlaylistCard';
 import { CreatePlaylistModal } from '@/components/playlist/CreatePlaylistModal';
 import { PlaylistView } from '@/components/playlist/PlaylistView';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { usePlaylist, Playlist } from '@/contexts/PlaylistContext';
+import { useDeviceStorage } from '@/hooks/useDeviceStorage';
+import { requestStoragePermission } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 
 type ViewMode = 'grid' | 'list';
@@ -17,8 +19,40 @@ export function LibraryScreen() {
   const [filter, setFilter] = useState<Filter>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
-  const { queue, play, setQueue } = usePlayer();
+  const [scanProgress, setScanProgress] = useState<string>('');
+  const { queue, play, setQueue, addToQueue } = usePlayer();
   const { playlists, likedTracks } = usePlaylist();
+  const { scanForMusic, isLoading, error } = useDeviceStorage({
+    onProgress: (message) => setScanProgress(message),
+  });
+
+  const handleScanForMusic = async () => {
+    try {
+      setScanProgress('Requesting permission...');
+      // Request permission first
+      const hasPermission = await requestStoragePermission();
+      if (!hasPermission) {
+        setScanProgress('Storage permission denied. Check app settings.');
+        setTimeout(() => setScanProgress(''), 5000);
+        return;
+      }
+
+      setScanProgress('Scanning for music...');
+      const tracks = await scanForMusic();
+      if (tracks.length > 0) {
+        tracks.forEach(track => addToQueue(track));
+        setScanProgress(`Found ${tracks.length} songs!`);
+        setTimeout(() => setScanProgress(''), 3000);
+      } else {
+        setScanProgress('No songs found in Downloads. Check file locations.');
+        setTimeout(() => setScanProgress(''), 5000);
+      }
+    } catch (err) {
+      console.error('Scan error:', err);
+      setScanProgress('Scan failed. Please grant storage permission in Settings > Apps > Beatryx.');
+      setTimeout(() => setScanProgress(''), 7000);
+    }
+  };
 
   const filters: { id: Filter; label: string; icon: React.ElementType }[] = [
     { id: 'all', label: 'All', icon: ListMusic },
@@ -62,6 +96,17 @@ export function LibraryScreen() {
         <h1 className="text-2xl font-bold text-foreground">Your Library</h1>
         <div className="flex items-center gap-2">
           <button 
+            onClick={handleScanForMusic}
+            disabled={isLoading}
+            className="p-2 rounded-full hover:bg-secondary transition-colors disabled:opacity-50"
+            title="Scan for music files"
+          >
+            <FolderSearch className={cn(
+              "w-5 h-5 text-foreground",
+              isLoading && "animate-pulse"
+            )} />
+          </button>
+          <button 
             onClick={() => setShowCreateModal(true)}
             className="p-2 rounded-full hover:bg-secondary transition-colors"
           >
@@ -97,6 +142,41 @@ export function LibraryScreen() {
           </button>
         ))}
       </div>
+
+      {/* Scan Progress */}
+      {(scanProgress || error) && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={cn(
+            "p-3 rounded-lg text-sm font-medium text-center",
+            error ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
+          )}
+        >
+          {error || scanProgress}
+        </motion.div>
+      )}
+
+      {/* Empty State for All Songs */}
+      {queue.length === 0 && filter === 'all' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="py-12 text-center"
+        >
+          <Upload className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">No Music Yet</h3>
+          <p className="text-sm text-muted-foreground mb-4">Scan your device to find music files</p>
+          <button
+            onClick={handleScanForMusic}
+            disabled={isLoading}
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+          >
+            <FolderSearch className="w-4 h-4" />
+            {isLoading ? 'Scanning...' : 'Scan for Music'}
+          </button>
+        </motion.div>
+      )}
 
       {/* Content */}
       <AnimatePresence mode="wait">

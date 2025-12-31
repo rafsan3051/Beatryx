@@ -44,8 +44,8 @@ interface PlayerContextType {
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
-// Empty initial queue - users add music from device storage or file upload
-const mockTracks: Track[] = [];
+// Empty initial queue - users add music from device storage
+const initialTracks: Track[] = [];
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const { savePlaylist, loadPlaylist, savePlaybackState, loadPlaybackState } = usePlaylistPersistence();
@@ -53,16 +53,16 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   // Initialize state from persistence
   const [queue, setQueueState] = useState<Track[]>(() => {
     const saved = loadPlaylist();
-    return saved.length > 0 ? saved : mockTracks;
+    return saved.length > 0 ? saved : initialTracks;
   });
 
   const [currentTrack, setCurrentTrack] = useState<Track | null>(() => {
     const state = loadPlaybackState();
     if (state?.currentTrackId) {
       const savedQueue = loadPlaylist();
-      return savedQueue.find(t => t.id === state.currentTrackId) || mockTracks[0];
+      return savedQueue.find(t => t.id === state.currentTrackId) || null;
     }
-    return mockTracks[0];
+    return null;
   });
 
   const [isPlaying, setIsPlaying] = useState(false);

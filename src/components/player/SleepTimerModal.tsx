@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Timer, Check } from 'lucide-react';
+import { X, Timer, Check, Plus } from 'lucide-react';
 import { useSleepTimer } from '@/contexts/SleepTimerContext';
 import { cn } from '@/lib/utils';
 
@@ -33,10 +33,24 @@ function formatRemainingTime(seconds: number): string {
 
 export function SleepTimerModal({ isOpen, onClose }: SleepTimerModalProps) {
   const { sleepTimerMinutes, remainingTime, setSleepTimer, cancelSleepTimer } = useSleepTimer();
+  const [customMinutes, setCustomMinutes] = useState('');
+  const [showCustomInput, setShowCustomInput] = useState(false);
 
   const handleSelect = (minutes: number) => {
     setSleepTimer(minutes);
+    setShowCustomInput(false);
+    setCustomMinutes('');
     onClose();
+  };
+
+  const handleCustomSubmit = () => {
+    const minutes = parseInt(customMinutes);
+    if (minutes > 0 && minutes <= 999) {
+      setSleepTimer(minutes);
+      setShowCustomInput(false);
+      setCustomMinutes('');
+      onClose();
+    }
   };
 
   const handleCancel = () => {
@@ -98,6 +112,49 @@ export function SleepTimerModal({ isOpen, onClose }: SleepTimerModalProps) {
 
               {/* Timer Options */}
               <div className="p-2 max-h-80 overflow-y-auto">
+                {/* Custom Timer Input */}
+                {showCustomInput ? (
+                  <div className="p-4 mb-2 bg-secondary rounded-xl">
+                    <p className="text-sm text-muted-foreground mb-3">Custom Timer (minutes)</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        max="999"
+                        value={customMinutes}
+                        onChange={(e) => setCustomMinutes(e.target.value)}
+                        placeholder="Enter minutes"
+                        className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        autoFocus
+                      />
+                      <button
+                        onClick={handleCustomSubmit}
+                        disabled={!customMinutes || parseInt(customMinutes) <= 0}
+                        className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Set
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowCustomInput(false);
+                          setCustomMinutes('');
+                        }}
+                        className="px-3 py-2 bg-background border border-border rounded-lg hover:bg-secondary transition-colors"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowCustomInput(true)}
+                    className="w-full flex items-center justify-center gap-2 p-4 mb-2 rounded-xl border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors"
+                  >
+                    <Plus className="w-5 h-5 text-primary" />
+                    <span className="font-medium text-primary">Custom Timer</span>
+                  </button>
+                )}
+                
                 {timerOptions.map((option) => (
                   <button
                     key={option.value}

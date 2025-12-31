@@ -20,13 +20,13 @@ const accentColorsList = [
 ] as const;
 
 const appThemesList = [
-  { id: 'default', name: 'Default', emoji: '⚪' },
-  { id: 'midnight', name: 'Midnight', emoji: '🌙' },
-  { id: 'forest', name: 'Forest', emoji: '🌲' },
-  { id: 'sunset', name: 'Sunset', emoji: '🌅' },
-  { id: 'ocean', name: 'Ocean', emoji: '🌊' },
-  { id: 'lavender', name: 'Lavender', emoji: '💜' },
-  { id: 'monochrome', name: 'Mono', emoji: '⬛' },
+  { id: 'default', name: 'Default' },
+  { id: 'midnight', name: 'Midnight' },
+  { id: 'forest', name: 'Forest' },
+  { id: 'sunset', name: 'Sunset' },
+  { id: 'ocean', name: 'Ocean' },
+  { id: 'lavender', name: 'Lavender' },
+  { id: 'monochrome', name: 'Mono' },
 ] as const;
 
 const appIconsList: { id: AppIcon; name: string }[] = [
@@ -95,12 +95,11 @@ export function SettingsScreen() {
         <div className="mb-6">
           <p className="text-sm text-muted-foreground mb-3">Theme Style</p>
           <div className="grid grid-cols-4 gap-2">
-            {appThemesList.map(({ id, name, emoji }) => (
+            {appThemesList.map(({ id, name }) => (
               <button key={id} onClick={() => setAppTheme(id as any)}
-                className={cn("flex flex-col items-center gap-1 p-2 rounded-xl transition-all text-center",
+                className={cn("flex flex-col items-center gap-1 p-3 rounded-xl transition-all text-center",
                   appTheme === id ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                 )}>
-                <span className="text-lg">{emoji}</span>
                 <span className="text-xs font-medium">{name}</span>
               </button>
             ))}
@@ -147,43 +146,27 @@ export function SettingsScreen() {
         </div>
       </section>
 
-      {/* Playback Settings */}
-      <section className="bg-card rounded-2xl overflow-hidden shadow-soft">
-        <h2 className="text-sm font-semibold text-muted-foreground px-4 py-3 border-b border-border">Playback</h2>
-        <div className="divide-y divide-border">
-          {[
-            { icon: Headphones, label: 'Audio Quality', value: 'High' },
-            { icon: Music, label: 'Crossfade', value: '5s' },
-            { icon: Download, label: 'Download Quality', value: 'Very High' },
-          ].map((item, i) => (
-            <div key={i} className="flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors cursor-pointer">
-              <div className="flex items-center gap-3">
-                <item.icon className="w-5 h-5 text-muted-foreground" />
-                <span className="font-medium text-foreground">{item.label}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">{item.value}</span>
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Keyboard Shortcuts Info */}
+      {/* App Info */}
       <section className="bg-card rounded-2xl p-4 shadow-soft">
-        <h2 className="text-sm font-semibold text-muted-foreground mb-3">Keyboard Shortcuts</h2>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-muted-foreground">Play/Pause</span><kbd className="px-2 py-0.5 rounded bg-secondary text-foreground">Space</kbd></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Skip ±10s</span><kbd className="px-2 py-0.5 rounded bg-secondary text-foreground">← →</kbd></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Next/Prev Track</span><kbd className="px-2 py-0.5 rounded bg-secondary text-foreground">Shift + ← →</kbd></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Volume</span><kbd className="px-2 py-0.5 rounded bg-secondary text-foreground">↑ ↓</kbd></div>
+        <h2 className="text-sm font-semibold text-muted-foreground mb-3">About</h2>
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="text-foreground">App Name</span>
+            <span className="text-muted-foreground font-medium">Beatryx</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-foreground">Version</span>
+            <span className="text-muted-foreground font-medium">2.0.0</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-foreground">Platform</span>
+            <span className="text-muted-foreground font-medium">Android</span>
+          </div>
         </div>
       </section>
 
-      <div className="text-center text-sm text-muted-foreground pt-4">
-        <p className="font-medium">Beatryx</p>
-        <p>Version 2.0.0</p>
+      <div className="text-center text-sm text-muted-foreground pt-4 pb-2">
+        <p className="font-medium">Made with care for music lovers</p>
       </div>
     </div>
   );
