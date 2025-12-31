@@ -30,6 +30,7 @@ const appThemesList = [
 ] as const;
 
 const appIconsList: { id: AppIcon; name: string }[] = [
+  { id: 'custom', name: 'Beatryx' },
   { id: 'default', name: 'Disc' },
   { id: 'smartphone', name: 'Mobile' },
   { id: 'song-outline', name: 'Note Outline' },
@@ -113,8 +114,11 @@ export function SettingsScreen() {
           </p>
           <div className="grid grid-cols-4 gap-3">
             {appIconsList.map(({ id, name }) => (
-              <button key={id} onClick={() => setAppIcon(id)}
-                className={cn("relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all",
+              <button 
+                key={id} 
+                onClick={() => setAppIcon(id)}
+                type="button"
+                className={cn("relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all hover:scale-105",
                   appIcon === id 
                     ? "bg-primary/20 ring-2 ring-primary" 
                     : "bg-secondary hover:bg-secondary/80"
@@ -122,7 +126,14 @@ export function SettingsScreen() {
                 <img 
                   src={appIcons[id]} 
                   alt={name} 
-                  className="w-10 h-10 rounded-lg"
+                  className="w-10 h-10 rounded-lg object-cover"
+                  onError={(e) => {
+                    // Fallback for SVG or missing images
+                    const target = e.target as HTMLImageElement;
+                    if (!target.src.includes('fallback')) {
+                      target.src = appIcons['default'];
+                    }
+                  }}
                 />
                 <span className="text-xs font-medium text-foreground truncate w-full text-center">{name}</span>
                 {appIcon === id && (

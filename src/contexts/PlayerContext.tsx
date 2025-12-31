@@ -44,63 +44,8 @@ interface PlayerContextType {
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
-// Mock tracks for demo
-const mockTracks: Track[] = [
-  {
-    id: '1',
-    title: 'Midnight Dreams',
-    artist: 'Luna Eclipse',
-    album: 'Starlight Sessions',
-    duration: 234,
-    artwork: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-  },
-  {
-    id: '2',
-    title: 'Ocean Waves',
-    artist: 'Coastal Beats',
-    album: 'Serenity',
-    duration: 198,
-    artwork: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400&h=400&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-  },
-  {
-    id: '3',
-    title: 'Urban Jungle',
-    artist: 'Metro Pulse',
-    album: 'City Nights',
-    duration: 267,
-    artwork: 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400&h=400&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
-  },
-  {
-    id: '4',
-    title: 'Electric Soul',
-    artist: 'Neon Hearts',
-    album: 'Digital Love',
-    duration: 312,
-    artwork: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
-  },
-  {
-    id: '5',
-    title: 'Mountain High',
-    artist: 'Peak Sound',
-    album: 'Altitude',
-    duration: 245,
-    artwork: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=400&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
-  },
-  {
-    id: '6',
-    title: 'Sunset Boulevard',
-    artist: 'Golden Hour',
-    album: 'California Dreams',
-    duration: 289,
-    artwork: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=400&h=400&fit=crop',
-    audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
-  },
-];
+// Empty initial queue - users add music from device storage or file upload
+const mockTracks: Track[] = [];
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const { savePlaylist, loadPlaylist, savePlaybackState, loadPlaybackState } = usePlaylistPersistence();

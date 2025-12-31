@@ -10,11 +10,14 @@ import {
   Play, 
   Trash2, 
   Music,
-  FolderOpen 
+  FolderOpen,
+  Smartphone
 } from 'lucide-react';
 import { Track, usePlayer } from '@/contexts/PlayerContext';
 import { useLocalFiles } from '@/hooks/useLocalFiles';
+import { useDeviceStorage } from '@/hooks/useDeviceStorage';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface QueueManagerProps {
   isOpen: boolean;
@@ -24,7 +27,11 @@ interface QueueManagerProps {
 export function QueueManager({ isOpen, onClose }: QueueManagerProps) {
   const { queue, currentTrack, play, setQueue, addToQueue } = usePlayer();
   const { openFilePicker, isLoading } = useLocalFiles();
+  const { fetchDeviceMusic, isLoading: isDeviceLoading } = useDeviceStorage({
+    onProgress: (msg) => msg && console.log(msg)
+  });
   const [items, setItems] = useState(queue);
+  const [progressMessage, setProgressMessage] = useState('');
 
   // Sync with queue
   React.useEffect(() => {
@@ -43,7 +50,31 @@ export function QueueManager({ isOpen, onClose }: QueueManagerProps) {
 
   const handleAddFiles = async () => {
     const tracks = await openFilePicker();
+    if (tracks.length === 0) {
+      toast.info('No audio files selected');
+      return;
+    }
     tracks.forEach(track => addToQueue(track));
+    toast.success(`Added ${tracks.length} track(s) to queue`);
+  };
+
+  const handleAddDeviceMusic = async () => {
+    try {
+      setProgressMessage('Scanning device storage...');
+      const tracks = await fetchDeviceMusic();
+      setProgressMessage('');
+      
+      if (tracks.length === 0) {
+        toast.error('No audio files found on device. Check permissions.');
+        return;
+      }
+      
+      tracks.forEach(track => addToQueue(track));
+      toast.success(`Added ${tracks.length} track(s) from device storage`);
+    } catch (err) {
+      toast.error('Failed to fetch device music');
+      console.error(err);
+    }
   };
 
   const formatDuration = (seconds: number) => {
@@ -78,7 +109,7 @@ export function QueueManager({ isOpen, onClose }: QueueManagerProps) {
             </div>
 
             {/* Add Files Button */}
-            <div className="p-4 border-b border-border">
+            <div className="p-4 border-b border-border space-y-2">
               <button
                 onClick={handleAddFiles}
                 disabled={isLoading}
@@ -87,6 +118,21 @@ export function QueueManager({ isOpen, onClose }: QueueManagerProps) {
                 <FolderOpen className="w-5 h-5" />
                 {isLoading ? 'Loading...' : 'Add Local Files'}
               </button>
+              
+              <button
+                onClick={handleAddDeviceMusic}
+                disabled={isDeviceLoading}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent text-accent-foreground font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+              >
+                <Smartphone className="w-5 h-5" />
+                {isDeviceLoading ? 'Scanning...' : 'Add from Phone Storage'}
+              </button>
+              
+              {progressMessage && (
+                <p className="text-xs text-muted-foreground text-center animate-pulse">
+                  {progressMessage}
+                </p>
+              )}
             </div>
 
             {/* Queue List */}

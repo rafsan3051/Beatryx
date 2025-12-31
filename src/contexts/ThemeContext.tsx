@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 type Theme = 'light' | 'dark' | 'system';
 type AccentColor = 'coral' | 'blue' | 'purple' | 'green' | 'pink' | 'amber' | 'cyan' | 'rose';
 type AppTheme = 'default' | 'midnight' | 'forest' | 'sunset' | 'ocean' | 'lavender' | 'monochrome';
-type AppIcon = 'default' | 'smartphone' | 'song-outline' | 'song' | 'music' | 'disc-outline' | 'square';
+type AppIcon = 'custom' | 'default' | 'smartphone' | 'song-outline' | 'song' | 'music' | 'disc-outline' | 'square';
 
 interface ThemeContextType {
   theme: Theme;
@@ -21,6 +21,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 // App icons configuration
 const appIcons: Record<AppIcon, string> = {
+  'custom': '/icons/icon-custom.svg',
   'default': '/icons/icon-default.png',
   'smartphone': '/icons/icon-smartphone.png',
   'song-outline': '/icons/icon-song-outline.png',
@@ -165,7 +166,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const [appIcon, setAppIcon] = useState<AppIcon>(() => {
     const stored = localStorage.getItem('appIcon');
-    return (stored as AppIcon) || 'default';
+    return (stored as AppIcon) || 'custom';
   });
 
   const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('dark');

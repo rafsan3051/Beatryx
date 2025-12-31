@@ -6,6 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+bun-debug.log*
 
 node_modules
 dist
@@ -22,3 +23,37 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables
+.env
+.env*.local
+
+# Capacitor
+.capacitor/
+
+# Android
+android/.gradle
+android/.idea
+android/build
+android/app/build
+android/local.properties
+android/captures/
+android/*.iml
+*.apk
+*.aab
+
+# Build outputs
+coverage/
+.cache/
+
+# OS
+Thumbs.db
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
