@@ -10,7 +10,15 @@ const config: CapacitorConfig = {
   },
   android: {
     minWebViewVersion: 55,
-    backgroundColor: '#000000'
+    backgroundColor: '#000000',
+    // Enable background audio playback
+    allowMixedContent: true
+  },
+  plugins: {
+    // Background audio configuration
+    CapacitorHttp: {
+      enabled: true
+    }
   }
 };
 
