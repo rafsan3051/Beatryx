@@ -32,7 +32,7 @@ Before you begin, ensure you have the following installed:
 ### Step 1: Clone the Repository
 
 ```bash
-git clone <YOUR_GIT_URL>
+git clone https://github.com/rafsan3051/Beatryx.git
 cd Beatryx
 ```
 
