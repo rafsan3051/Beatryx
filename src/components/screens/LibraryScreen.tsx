@@ -1,42 +1,24 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ListMusic, Heart, Clock, Plus, Grid, List } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ListMusic, Heart, Clock, Plus, Grid, List, Music } from 'lucide-react';
 import { TrackList } from '@/components/library/TrackList';
 import { PlaylistCard } from '@/components/library/PlaylistCard';
+import { CreatePlaylistModal } from '@/components/playlist/CreatePlaylistModal';
+import { PlaylistView } from '@/components/playlist/PlaylistView';
 import { usePlayer } from '@/contexts/PlayerContext';
+import { usePlaylist, Playlist } from '@/contexts/PlaylistContext';
 import { cn } from '@/lib/utils';
 
 type ViewMode = 'grid' | 'list';
 type Filter = 'all' | 'playlists' | 'liked' | 'recent';
 
-const playlists = [
-  {
-    id: '1',
-    title: 'My Favorites',
-    subtitle: 'Your top picks',
-    artwork: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop',
-    trackCount: 45,
-  },
-  {
-    id: '2',
-    title: 'Discover Weekly',
-    subtitle: 'Fresh finds',
-    artwork: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=400&h=400&fit=crop',
-    trackCount: 30,
-  },
-  {
-    id: '3',
-    title: 'Road Trip',
-    subtitle: 'Long drives',
-    artwork: 'https://images.unsplash.com/photo-1494891848038-7bd202a2afeb?w=400&h=400&fit=crop',
-    trackCount: 22,
-  },
-];
-
 export function LibraryScreen() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [filter, setFilter] = useState<Filter>('all');
-  const { queue } = usePlayer();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
+  const { queue, play, setQueue } = usePlayer();
+  const { playlists, likedTracks } = usePlaylist();
 
   const filters: { id: Filter; label: string; icon: React.ElementType }[] = [
     { id: 'all', label: 'All', icon: ListMusic },
@@ -44,6 +26,30 @@ export function LibraryScreen() {
     { id: 'liked', label: 'Liked', icon: Heart },
     { id: 'recent', label: 'Recent', icon: Clock },
   ];
+
+  const handlePlaylistClick = (playlist: Playlist) => {
+    setSelectedPlaylist(playlist);
+  };
+
+  const handlePlayLiked = () => {
+    if (likedTracks.length > 0) {
+      setQueue(likedTracks);
+      play(likedTracks[0]);
+    }
+  };
+
+  // Show playlist view if one is selected
+  if (selectedPlaylist) {
+    const currentPlaylist = playlists.find(p => p.id === selectedPlaylist.id);
+    if (currentPlaylist) {
+      return (
+        <PlaylistView
+          playlist={currentPlaylist}
+          onBack={() => setSelectedPlaylist(null)}
+        />
+      );
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6 pb-40">
@@ -55,7 +61,10 @@ export function LibraryScreen() {
       >
         <h1 className="text-2xl font-bold text-foreground">Your Library</h1>
         <div className="flex items-center gap-2">
-          <button className="p-2 rounded-full hover:bg-secondary transition-colors">
+          <button 
+            onClick={() => setShowCreateModal(true)}
+            className="p-2 rounded-full hover:bg-secondary transition-colors"
+          >
             <Plus className="w-5 h-5 text-foreground" />
           </button>
           <button
@@ -90,57 +99,140 @@ export function LibraryScreen() {
       </div>
 
       {/* Content */}
-      {filter === 'all' || filter === 'playlists' ? (
-        <section>
-          <h2 className="text-lg font-semibold text-foreground mb-4">Playlists</h2>
-          {viewMode === 'grid' ? (
-            <div className="grid grid-cols-2 gap-4">
-              {playlists.map((playlist) => (
-                <PlaylistCard
-                  key={playlist.id}
-                  title={playlist.title}
-                  subtitle={playlist.subtitle}
-                  artwork={playlist.artwork}
-                  trackCount={playlist.trackCount}
-                />
-              ))}
+      <AnimatePresence mode="wait">
+        {(filter === 'all' || filter === 'playlists') && (
+          <motion.section
+            key="playlists"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-foreground">Playlists</h2>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="text-sm text-primary font-medium"
+              >
+                Create New
+              </button>
             </div>
-          ) : (
-            <div className="space-y-2">
-              {playlists.map((playlist, index) => (
-                <motion.div
-                  key={playlist.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors"
+            
+            {playlists.length === 0 ? (
+              <div className="py-8 text-center">
+                <Music className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                <p className="text-muted-foreground">No playlists yet</p>
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="mt-3 px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium"
                 >
-                  <img
-                    src={playlist.artwork}
-                    alt={playlist.title}
-                    className="w-14 h-14 rounded-lg object-cover"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-foreground truncate">{playlist.title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Playlist • {playlist.trackCount} songs
-                    </p>
+                  Create Your First Playlist
+                </button>
+              </div>
+            ) : viewMode === 'grid' ? (
+              <div className="grid grid-cols-2 gap-4">
+                {playlists.map((playlist) => (
+                  <div key={playlist.id} onClick={() => handlePlaylistClick(playlist)}>
+                    <PlaylistCard
+                      title={playlist.name}
+                      subtitle={playlist.description || `${playlist.tracks.length} tracks`}
+                      artwork={playlist.tracks[0]?.artwork || ''}
+                      trackCount={playlist.tracks.length}
+                    />
                   </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </section>
-      ) : null}
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {playlists.map((playlist, index) => (
+                  <motion.div
+                    key={playlist.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    onClick={() => handlePlaylistClick(playlist)}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors"
+                  >
+                    <div className="w-14 h-14 rounded-lg bg-secondary overflow-hidden">
+                      {playlist.tracks[0]?.artwork ? (
+                        <img
+                          src={playlist.tracks[0].artwork}
+                          alt={playlist.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Music className="w-6 h-6 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-foreground truncate">{playlist.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Playlist • {playlist.tracks.length} songs
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.section>
+        )}
 
-      {filter === 'all' || filter === 'liked' || filter === 'recent' ? (
-        <section>
-          <TrackList 
-            tracks={queue} 
-            title={filter === 'liked' ? 'Liked Songs' : filter === 'recent' ? 'Recently Played' : 'All Songs'} 
-          />
-        </section>
-      ) : null}
+        {(filter === 'all' || filter === 'liked') && (
+          <motion.section
+            key="liked"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            {filter === 'liked' && (
+              <div className="mb-4">
+                <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl">
+                  <div className="w-16 h-16 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <Heart className="w-8 h-8 text-primary" fill="currentColor" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-foreground">Liked Songs</h3>
+                    <p className="text-sm text-muted-foreground">{likedTracks.length} tracks</p>
+                  </div>
+                  {likedTracks.length > 0 && (
+                    <button
+                      onClick={handlePlayLiked}
+                      className="p-3 rounded-full gradient-primary"
+                    >
+                      <ListMusic className="w-5 h-5 text-primary-foreground" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+            <TrackList 
+              tracks={filter === 'liked' ? likedTracks : queue} 
+              title={filter === 'liked' ? 'Liked Songs' : 'All Songs'} 
+            />
+          </motion.section>
+        )}
+
+        {filter === 'recent' && (
+          <motion.section
+            key="recent"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <TrackList 
+              tracks={queue} 
+              title="Recently Played" 
+            />
+          </motion.section>
+        )}
+      </AnimatePresence>
+
+      {/* Create Playlist Modal */}
+      <CreatePlaylistModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+      />
     </div>
   );
 }

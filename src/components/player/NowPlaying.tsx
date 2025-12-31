@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { useSleepTimer } from '@/contexts/SleepTimerContext';
+import { usePlaylist } from '@/contexts/PlaylistContext';
 import { Slider } from '@/components/ui/slider';
 import { SleepTimerModal } from './SleepTimerModal';
 import { cn } from '@/lib/utils';
@@ -49,8 +50,10 @@ export function NowPlaying({ isExpanded, onCollapse, onOpenQueue }: NowPlayingPr
   } = usePlayer();
 
   const { sleepTimerMinutes, remainingTime } = useSleepTimer();
-  const [isLiked, setIsLiked] = useState(false);
+  const { toggleLikeTrack, isTrackLiked } = usePlaylist();
   const [showSleepTimer, setShowSleepTimer] = useState(false);
+
+  const isLiked = currentTrack ? isTrackLiked(currentTrack.id) : false;
 
   const formatTimerDisplay = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -197,7 +200,7 @@ export function NowPlaying({ isExpanded, onCollapse, onOpenQueue }: NowPlayingPr
             {/* Bottom Actions */}
             <div className="flex items-center justify-between pb-4">
               <button 
-                onClick={() => setIsLiked(!isLiked)}
+                onClick={() => currentTrack && toggleLikeTrack(currentTrack)}
                 className="p-3 rounded-full hover:bg-secondary transition-colors"
               >
                 <Heart 

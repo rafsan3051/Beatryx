@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, MoreVertical, Trash2, X } from 'lucide-react';
+import { Play, Pause, MoreVertical, Trash2, X, ListPlus, Heart } from 'lucide-react';
 import { usePlayer, Track } from '@/contexts/PlayerContext';
+import { usePlaylist } from '@/contexts/PlaylistContext';
+import { AddToPlaylistModal } from '@/components/playlist/AddToPlaylistModal';
 import { cn } from '@/lib/utils';
 
 interface TrackListProps {
@@ -13,8 +15,10 @@ interface TrackListProps {
 
 export function TrackList({ tracks, title, onDeleteTrack, showDelete = true }: TrackListProps) {
   const { currentTrack, isPlaying, play, pause, removeFromQueue } = usePlayer();
+  const { toggleLikeTrack, isTrackLiked } = usePlaylist();
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [addToPlaylistTrack, setAddToPlaylistTrack] = useState<Track | null>(null);
 
   const handleTrackClick = (track: Track) => {
     if (currentTrack?.id === track.id) {
@@ -35,7 +39,7 @@ export function TrackList({ tracks, title, onDeleteTrack, showDelete = true }: T
 
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
@@ -123,8 +127,30 @@ export function TrackList({ tracks, title, onDeleteTrack, showDelete = true }: T
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="absolute right-0 top-full mt-1 z-50 bg-secondary border border-border rounded-lg shadow-xl overflow-hidden min-w-[140px]"
+                        className="absolute right-0 top-full mt-1 z-50 bg-secondary border border-border rounded-lg shadow-xl overflow-hidden min-w-[160px]"
                       >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleLikeTrack(track);
+                            setMenuOpen(null);
+                          }}
+                          className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-primary/10 transition-colors"
+                        >
+                          <Heart className={cn("w-4 h-4", isTrackLiked(track.id) && "fill-accent text-accent")} />
+                          {isTrackLiked(track.id) ? 'Unlike' : 'Like'}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setAddToPlaylistTrack(track);
+                            setMenuOpen(null);
+                          }}
+                          className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-primary/10 transition-colors"
+                        >
+                          <ListPlus className="w-4 h-4" />
+                          Add to Playlist
+                        </button>
                         {showDelete && (
                           <button
                             onClick={(e) => {
@@ -202,6 +228,13 @@ export function TrackList({ tracks, title, onDeleteTrack, showDelete = true }: T
           onClick={() => setMenuOpen(null)}
         />
       )}
+
+      {/* Add to Playlist Modal */}
+      <AddToPlaylistModal
+        isOpen={addToPlaylistTrack !== null}
+        onClose={() => setAddToPlaylistTrack(null)}
+        track={addToPlaylistTrack}
+      />
     </div>
   );
 }
