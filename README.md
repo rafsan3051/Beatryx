@@ -1,73 +1,146 @@
-# Welcome to your Lovable project
+# Beatryx
 
-## Project info
+A modern music player application built with React, TypeScript, and Capacitor for Android.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## About
 
-## How can I edit this code?
+Beatryx is a feature-rich music player app that provides:
+- Local music playback with queue management
+- Customizable themes and settings
+- Device storage integration
+- Smooth and responsive UI with shadcn-ui components
+- Native Android capabilities via Capacitor
 
-There are several ways of editing your application.
+## Technologies Used
 
-**Use Lovable**
+- **Frontend**: React + TypeScript + Vite
+- **UI Library**: shadcn-ui + Tailwind CSS
+- **Mobile Framework**: Capacitor
+- **Runtime**: Bun (or Node.js)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Prerequisites
 
-Changes made via Lovable will be committed automatically to this repo.
+Before you begin, ensure you have the following installed:
 
-**Use your preferred IDE**
+- [Node.js](https://nodejs.org/) (v18 or higher) or [Bun](https://bun.sh/)
+- [Android Studio](https://developer.android.com/studio)
+- [Java JDK](https://www.oracle.com/java/technologies/downloads/) (JDK 11 or higher)
+- [Git](https://git-scm.com/)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Clone and Setup
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Step 1: Clone the Repository
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+```bash
 git clone <YOUR_GIT_URL>
+cd Beatryx
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Step 2: Install Dependencies
 
-# Step 3: Install the necessary dependencies.
-npm i
+Using npm:
+```bash
+npm install
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+Or using Bun:
+```bash
+bun install
+```
+
+### Step 3: Build the Web App
+
+```bash
+npm run build
+```
+
+Or with Bun:
+```bash
+bun run build
+```
+
+## Building the Android APK
+
+### Step 4: Sync Capacitor with Android
+
+```bash
+npx cap sync android
+```
+
+This command:
+- Copies the web build to the Android project
+- Updates Android dependencies
+- Syncs Capacitor plugins
+
+### Step 5: Open in Android Studio
+
+```bash
+npx cap open android
+```
+
+This will open the Android project in Android Studio.
+
+### Step 6: Build APK in Android Studio
+
+1. Wait for Gradle sync to complete
+2. Go to **Build** → **Build Bundle(s) / APK(s)** → **Build APK(s)**
+3. Wait for the build process to complete
+4. Click on **locate** in the notification to find your APK
+
+The APK will be located at:
+```
+android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Alternative: Build APK from VS Code Terminal
+
+You can also build the APK directly from VS Code terminal:
+
+```bash
+cd android
+./gradlew assembleDebug
+```
+
+For Windows:
+```bash
+cd android
+gradlew.bat assembleDebug
+```
+
+The APK will be generated at: `android/app/build/outputs/apk/debug/app-debug.apk`
+
+## Development
+
+To run the app in development mode:
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Then open http://localhost:5173 in your browser.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+To test on an Android device/emulator:
 
-**Use GitHub Codespaces**
+```bash
+npm run build
+npx cap sync android
+npx cap run android
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Project Structure
 
-## What technologies are used for this project?
+```
+Beatryx/
+├── src/              # Source code
+│   ├── components/   # React components
+│   ├── contexts/     # React contexts
+│   ├── hooks/        # Custom hooks
+│   └── pages/        # Page components
+├── android/          # Android native project
+├── public/           # Static assets
+└── capacitor.config.ts  # Capacitor configuration
+```
 
-This project is built with:
+## License
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+This project is licensed under the MIT License.
