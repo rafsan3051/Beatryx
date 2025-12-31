@@ -1,40 +1,34 @@
 import { Filesystem, Directory } from '@capacitor/filesystem';
 
 /**
- * Request storage permission with fallback
+ * Request storage permission - Capacitor handles this automatically
  */
 export async function requestStoragePermission(): Promise<boolean> {
-  try {
-    // For Android 6+, we need to handle runtime permissions
-    // This is handled at the Capacitor level, but we ensure graceful fallback
-    
-    // Try accessing files - if it works, permission is granted
-    // If it fails, permission is denied
-    const hasAccess = await checkStorageAccess();
-    return hasAccess;
-  } catch (err) {
-    console.error('Permission check failed:', err);
-    // On web or if permission system not available, assume granted
-    return true;
-  }
+  // Always return true - permission is handled at Android OS level
+  // If user denied, the file operations will fail
+  return true;
 }
 
 /**
  * Check if we have storage access by trying to list a directory
  */
 async function checkStorageAccess(): Promise<boolean> {
-  try {
-    // Try to access downloads directory
-    // This will fail if permission is not granted
-    await Filesystem.readdir({
-      path: 'Downloads',
-      directory: Directory.ExternalStorage,
-    });
-    return true;
-  } catch (err) {
-    console.error('Storage access check failed:', err);
-    return false;
+  // Try multiple paths to verify access
+  const paths = ['Downloads', 'Music', ''];
+  
+  for (const path of paths) {
+    try {
+      await Filesystem.readdir({
+        path,
+        directory: Directory.ExternalStorage,
+      });
+      return true; // Success
+    } catch (err) {
+      continue; // Try next
+    }
   }
+  
+  return false;
 }
 
 /**

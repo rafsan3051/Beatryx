@@ -22,23 +22,19 @@ export function LibraryScreen() {
   const [scanProgress, setScanProgress] = useState<string>('');
   const { queue, play, setQueue, addToQueue } = usePlayer();
   const { playlists, likedTracks } = usePlaylist();
-  const { scanForMusic, isLoading, error } = useDeviceStorage({
+  const { fetchDeviceMusic, isLoading, error } = useDeviceStorage({
     onProgress: (message) => setScanProgress(message),
   });
 
   const handleScanForMusic = async () => {
     try {
-      setScanProgress('Requesting permission...');
-      // Request permission first
-      const hasPermission = await requestStoragePermission();
-      if (!hasPermission) {
-        setScanProgress('Storage permission denied. Check app settings.');
-        setTimeout(() => setScanProgress(''), 5000);
-        return;
-      }
-
-      setScanProgress('Scanning for music...');
-      const tracks = await scanForMusic();
+      setScanProgress('Scanning for music files...');
+      
+      // Request permission (will return true immediately)
+      await requestStoragePermission();
+      
+      // Attempt scan
+      const tracks = await fetchDeviceMusic();
       if (tracks.length > 0) {
         tracks.forEach(track => addToQueue(track));
         setScanProgress(`Found ${tracks.length} songs!`);
@@ -49,7 +45,7 @@ export function LibraryScreen() {
       }
     } catch (err) {
       console.error('Scan error:', err);
-      setScanProgress('Scan failed. Please grant storage permission in Settings > Apps > Beatryx.');
+      setScanProgress('Unable to access files. Please ensure storage permission is granted in Settings > Apps > Beatryx > Permissions');
       setTimeout(() => setScanProgress(''), 7000);
     }
   };

@@ -7,6 +7,8 @@ import {
 import { useTheme, accentColors, appThemes, appIcons, type AppIcon } from '@/contexts/ThemeContext';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
+import AppIconPlugin from '@/plugins/app-icon';
+import { Capacitor } from '@capacitor/core';
 
 const accentColorsList = [
   { id: 'coral', name: 'Coral', color: 'bg-orange-500' },
@@ -48,6 +50,20 @@ export function SettingsScreen() {
     { id: 'dark', label: 'Dark', icon: Moon },
     { id: 'system', label: 'System', icon: Monitor },
   ] as const;
+
+  const handleAppIconChange = async (iconId: AppIcon) => {
+    setAppIcon(iconId);
+    
+    // On Android, change the launcher icon
+    if (Capacitor.getPlatform() === 'android') {
+      try {
+        await AppIconPlugin.changeIcon({ icon: iconId });
+        console.log('[Beatryx] Launcher icon changed to:', iconId);
+      } catch (error) {
+        console.error('[Beatryx] Failed to change launcher icon:', error);
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6 pb-40">
@@ -115,7 +131,7 @@ export function SettingsScreen() {
             {appIconsList.map(({ id, name }) => (
               <button 
                 key={id} 
-                onClick={() => setAppIcon(id)}
+                onClick={() => handleAppIconChange(id)}
                 type="button"
                 className={cn("relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all hover:scale-105",
                   appIcon === id 

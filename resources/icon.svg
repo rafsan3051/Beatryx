@@ -1,0 +1,31 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- White Background with rounded corners -->
+  <rect width="1024" height="1024" fill="white" rx="220"/>
+  
+  <!-- Main Music Note (larger and centered) -->
+  <g transform="translate(512, 512)">
+    <!-- Stem -->
+    <rect x="70" y="-350" width="80" height="600" rx="40" fill="#1a1a2e"/>
+    
+    <!-- Top decorative flag -->
+    <path d="M 150 -350 C 250 -330, 280 -250, 280 -180 C 280 -100, 250 -50, 150 -30 L 150 -350 Z" 
+          fill="#0f3460"/>
+    
+    <!-- Bottom note head (large ellipse) -->
+    <ellipse cx="30" cy="250" rx="160" ry="120" fill="#16213e"/>
+    
+    <!-- Orange glow accent -->
+    <ellipse cx="30" cy="250" rx="100" ry="75" fill="#ff6600" opacity="0.7"/>
+    <circle cx="30" cy="250" r="50" fill="#ff8c00"/>
+    
+    <!-- Inner highlight -->
+    <ellipse cx="30" cy="230" rx="30" ry="20" fill="white" opacity="0.3"/>
+  </g>
+  
+  <!-- Decorative elements -->
+  <circle cx="200" cy="200" r="25" fill="#ff6600" opacity="0.4"/>
+  <circle cx="824" cy="824" r="25" fill="#ff6600" opacity="0.4"/>
+  
+  <!-- Bottom accent line -->
+  <rect x="150" y="900" width="724" height="12" rx="6" fill="#ff6600"/>
+</svg>

@@ -1,0 +1,22 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="200" fill="#FFFFFF"/>
+  
+  <!-- Music Note -->
+  <g transform="translate(256, 150)">
+    <!-- Note stem -->
+    <rect x="380" y="50" width="60" height="520" rx="30" fill="#1E1B4B"/>
+    
+    <!-- Note head 1 (top) -->
+    <ellipse cx="350" cy="570" rx="120" ry="90" fill="#3730A3"/>
+    
+    <!-- Note flag -->
+    <path d="M 440 50 Q 520 60, 520 140 Q 520 220, 440 240 L 440 50 Z" fill="#3730A3"/>
+    
+    <!-- Accent circle -->
+    <circle cx="350" cy="570" r="40" fill="#F97316" opacity="0.8"/>
+  </g>
+  
+  <!-- Bottom decorative line -->
+  <rect x="100" y="850" width="824" height="8" rx="4" fill="#F97316"/>
+</svg>

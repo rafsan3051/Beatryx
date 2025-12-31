@@ -7,22 +7,16 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Track } from '@/contexts/PlayerContext';
 import { Capacitor } from '@capacitor/core';
 
-// Common music directories on Android
+// Common music directories on Android (relative paths for ExternalStorage)
 const MUSIC_DIRECTORIES = [
-  '/Music',
-  '/Music/Downloads',
-  '/Downloads',
-  '/Documents',
-  '/DCIM',
-  '/Podcasts',
-];
-
-// Alternative paths for some devices
-const ALTERNATIVE_MUSIC_PATHS = [
-  '/storage/emulated/0/Music',
-  '/storage/emulated/0/Downloads',
-  '/sdcard/Music',
-  '/sdcard/Downloads',
+  'Download',
+  'Downloads', 
+  'Music',
+  'Audio',
+  'media',
+  'Audiobooks',
+  'Podcasts',
+  'Ringtones',
 ];
 
 // Supported audio formats
@@ -102,6 +96,22 @@ export function useDeviceStorage(options: UseDeviceStorageOptions = {}) {
    */
   const readFileAsBlob = async (path: string): Promise<string> => {
     try {
+      console.log(`[Beatryx] Reading file: ${path}`);
+      
+      // Try to get the file URI first
+      const fileUri = await Filesystem.getUri({
+        path,
+        directory: Directory.ExternalStorage,
+      });
+      
+      console.log(`[Beatryx] File URI: ${fileUri.uri}`);
+      
+      // On Android, we can use the file URI directly
+      if (Capacitor.getPlatform() === 'android' && fileUri.uri) {
+        return fileUri.uri;
+      }
+      
+      // Fallback: read as base64
       const result = await Filesystem.readFile({
         path,
         directory: Directory.ExternalStorage,
@@ -116,9 +126,11 @@ export function useDeviceStorage(options: UseDeviceStorageOptions = {}) {
       }
       const byteArray = new Uint8Array(byteNumbers);
       const blob = new Blob([byteArray], { type: 'audio/mpeg' });
-      return URL.createObjectURL(blob);
+      const blobUrl = URL.createObjectURL(blob);
+      console.log(`[Beatryx] Created blob URL for: ${path}`);
+      return blobUrl;
     } catch (err) {
-      console.error(`Error reading file ${path}:`, err);
+      console.error(`[Beatryx] Error reading file ${path}:`, err);
       throw err;
     }
   };
@@ -126,43 +138,53 @@ export function useDeviceStorage(options: UseDeviceStorageOptions = {}) {
   /**
    * Scan a directory recursively for audio files
    */
-  const scanDirectory = useCallback(async (dirPath: string, maxDepth = 3, currentDepth = 0): Promise<Track[]> => {
+  const scanDirectory = useCallback(async (dirPath: string, maxDepth = 2, currentDepth = 0): Promise<Track[]> => {
     const tracks: Track[] = [];
 
     if (currentDepth >= maxDepth) return tracks;
 
     try {
-      onProgress?.(`Scanning: ${dirPath}`);
+      const displayPath = dirPath || 'root';
+      onProgress?.(`Scanning: ${displayPath}`);
+      console.log(`[Beatryx] Scanning directory: ${dirPath || 'root'}`);
       
       const result = await Filesystem.readdir({
         path: dirPath,
         directory: Directory.ExternalStorage,
       });
 
+      console.log(`[Beatryx] Found ${result.files.length} items in ${displayPath}`);
+
       for (const file of result.files) {
         try {
+          console.log(`[Beatryx] Processing: ${file.name} (type: ${file.type})`);
+          
           // Check if it's a directory
           if (file.type === 'directory') {
             // Recursively scan subdirectories
+            const subDirPath = dirPath ? `${dirPath}/${file.name}` : file.name;
             const subDirTracks = await scanDirectory(
-              `${dirPath}/${file.name}`,
+              subDirPath,
               maxDepth,
               currentDepth + 1
             );
             tracks.push(...subDirTracks);
           } else if (file.type === 'file' && isSupportedAudio(file.name)) {
             // It's an audio file
-            const filePath = `${dirPath}/${file.name}`;
+            const filePath = dirPath ? `${dirPath}/${file.name}` : file.name;
             const hash = getFileHash(file.name);
 
             // Skip if already scanned
             if (scannedHashesRef.current.has(hash)) {
+              console.log(`[Beatryx] Skipping duplicate: ${file.name}`);
               continue;
             }
 
             scannedHashesRef.current.add(hash);
 
             const { title, artist } = extractMetadata(file.name);
+            
+            console.log(`[Beatryx] Found audio file: ${filePath}`);
 
             try {
               const audioUrl = await readFileAsBlob(filePath);
@@ -178,16 +200,17 @@ export function useDeviceStorage(options: UseDeviceStorageOptions = {}) {
               };
 
               tracks.push(track);
+              console.log(`[Beatryx] Successfully added: ${title} by ${artist}`);
             } catch (err) {
-              console.warn(`Failed to process audio file: ${file.name}`, err);
+              console.error(`[Beatryx] Failed to process audio file: ${file.name}`, err);
             }
           }
         } catch (err) {
-          console.warn(`Error processing file ${file.name}:`, err);
+          console.warn(`[Beatryx] Error processing file ${file.name}:`, err);
         }
       }
     } catch (err) {
-      console.warn(`Error scanning directory ${dirPath}:`, err);
+      console.warn(`[Beatryx] Error scanning directory ${dirPath}:`, err);
     }
 
     return tracks;
@@ -212,30 +235,36 @@ export function useDeviceStorage(options: UseDeviceStorageOptions = {}) {
       onProgress?.('Initializing file system access...');
       
       let allTracks: Track[] = [];
-      const dirsToTry = [...MUSIC_DIRECTORIES];
-
-      // On Android, add alternative paths
-      if (Capacitor.getPlatform() === 'android') {
-        dirsToTry.push(...ALTERNATIVE_MUSIC_PATHS);
+      
+      // First, try to scan the root external storage (where Downloads typically is)
+      console.log('[Beatryx] Starting scan from external storage root');
+      
+      try {
+        const rootTracks = await scanDirectory('', 3);
+        allTracks = [...allTracks, ...rootTracks];
+        console.log(`[Beatryx] Found ${rootTracks.length} tracks in root`);
+      } catch (err) {
+        console.warn('[Beatryx] Could not scan root directory:', err);
       }
 
-      // Try to scan common music directories
+      // Also try specific directories as fallback
+      const dirsToTry = MUSIC_DIRECTORIES;
       for (const dir of dirsToTry) {
         try {
           onProgress?.(`Scanning ${dir}...`);
-          // Use scanDirectory from closure, which is safe
-          const dirTracks = await new Promise<Track[]>((resolve) => {
-            (async () => {
-              const result = await scanDirectory(dir);
-              resolve(result);
-            })();
-          });
-          allTracks = [...allTracks, ...dirTracks];
+          console.log(`[Beatryx] Trying directory: ${dir}`);
+          const dirTracks = await scanDirectory(dir);
+          if (dirTracks.length > 0) {
+            allTracks = [...allTracks, ...dirTracks];
+            console.log(`[Beatryx] Found ${dirTracks.length} tracks in ${dir}`);
+          }
         } catch (err) {
-          console.warn(`Could not scan ${dir}:`, err);
+          console.warn(`[Beatryx] Could not scan ${dir}:`, err);
         }
       }
 
+      console.log(`[Beatryx] Total tracks found: ${allTracks.length}`);
+      
       if (allTracks.length === 0) {
         setError('No audio files found on device. Check your Music/Downloads folders and permissions.');
       }
@@ -269,6 +298,7 @@ export function useDeviceStorage(options: UseDeviceStorageOptions = {}) {
     isLoading,
     error,
     fetchDeviceMusic,
+    scanForMusic: fetchDeviceMusic,
     isDeviceStorageAvailable,
   };
 }
