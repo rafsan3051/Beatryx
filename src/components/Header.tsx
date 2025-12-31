@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme, appIcons } from '@/contexts/ThemeContext';
 import { RefreshCw } from 'lucide-react';
 
 interface HeaderProps {
@@ -23,7 +23,7 @@ export function Header({ onRefresh, isRefreshing }: HeaderProps) {
     >
       <div className="flex items-center gap-3">
         <motion.img
-          src={`/icons/${appIcon}.png`}
+          src={appIcons[appIcon]}
           alt="Beatryx"
           className="w-10 h-10 rounded-xl shadow-lg"
           whileHover={{ scale: 1.05 }}
