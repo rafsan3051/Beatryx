@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme, appIcons } from '@/contexts/ThemeContext';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -48,10 +48,10 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         className="relative z-10"
       >
         <motion.img
-          src={`/icons/${appIcon}.png`}
+          src={appIcons[appIcon]}
           alt="Beatryx"
           className="w-28 h-28 rounded-3xl shadow-2xl"
-          animate={{ 
+          animate={{
             boxShadow: [
               "0 0 20px hsl(var(--primary) / 0.3)",
               "0 0 60px hsl(var(--primary) / 0.5)",

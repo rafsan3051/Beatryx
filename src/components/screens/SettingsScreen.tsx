@@ -171,7 +171,7 @@ export function SettingsScreen() {
       </section>
 
       <div className="text-center text-sm text-muted-foreground pt-4">
-        <p className="font-medium">Melody Player</p>
+        <p className="font-medium">Beatryx</p>
         <p>Version 2.0.0</p>
       </div>
     </div>
