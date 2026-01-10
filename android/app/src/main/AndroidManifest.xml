@@ -16,9 +16,11 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
     
     <application
-        android:label="beatryx"
+        android:label="Beatryx"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
+        
+        <!-- Main activity with NO intent filter -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -32,11 +34,105 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+        </activity>
+
+        <!-- 1. Default Icon Alias -->
+        <activity-alias
+            android:name=".MainActivityDefault"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/launcher_icon"
+            android:label="Beatryx"
+            android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-        </activity>
+        </activity-alias>
+
+        <!-- 2. Blue Icon Alias -->
+        <activity-alias
+            android:name=".MainActivityBlue"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/launcher_icon_blue"
+            android:label="Beatryx"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+
+        <!-- 3. Red Icon Alias -->
+        <activity-alias
+            android:name=".MainActivityRed"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/launcher_icon_red"
+            android:label="Beatryx"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+
+        <!-- 4. Pink Icon Alias -->
+        <activity-alias
+            android:name=".MainActivityPink"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/launcher_icon_pink"
+            android:label="Beatryx"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+
+        <!-- 5. Dark Icon Alias -->
+        <activity-alias
+            android:name=".MainActivityDark"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/launcher_icon_dark"
+            android:label="Beatryx"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+
+        <!-- 6. Neon Icon Alias -->
+        <activity-alias
+            android:name=".MainActivityNeon"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/launcher_icon_neon"
+            android:label="Beatryx"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
+
+        <!-- 7. Gold Icon Alias -->
+        <activity-alias
+            android:name=".MainActivityGold"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/launcher_icon_gold"
+            android:label="Beatryx"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity-alias>
 
         <service android:name="com.ryanheise.audioservice.AudioService"
             android:foregroundServiceType="mediaPlayback"

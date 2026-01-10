@@ -140,7 +140,7 @@ class _ThemeTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: theme.backgroundColor,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: theme.textColor.withValues(alpha: 0.1)),
+            border: Border.all(color: theme.textColor.withOpacity(0.1)),
           ),
           child: Center(
             child: Container(

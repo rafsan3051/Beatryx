@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_theme.dart';
 
 class ThemeManager extends ChangeNotifier {
@@ -18,16 +19,46 @@ class ThemeManager extends ChangeNotifier {
   Color get primaryColor => _currentTheme.primaryColor;
   
   List<BoxShadow> get cardShadows => isDarkMode ? [] : [
-    BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 20, offset: const Offset(0, 10))
+    BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 20, offset: const Offset(0, 10))
   ];
   
   List<BoxShadow> get neumorphicShadows => _currentTheme.neumorphicShadows;
   
   LinearGradient? get backgroundGradient => _currentTheme.backgroundGradient;
 
-  void setTheme(AppTheme theme) {
+  ThemeManager() {
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Load theme
+    final themeName = prefs.getString('theme_name');
+    if (themeName != null) {
+      try {
+        _currentTheme = AppTheme.allThemes.firstWhere((t) => t.name == themeName);
+      } catch (_) {
+        _currentTheme = AppTheme.modernDark;
+      }
+    }
+
+    // Load accent color
+    final accentValue = prefs.getInt('accent_color');
+    if (accentValue != null) {
+      _customAccentColor = Color(accentValue);
+    }
+    
+    notifyListeners();
+  }
+
+  Future<void> setTheme(AppTheme theme) async {
     if (_currentTheme.name == theme.name) return;
     _currentTheme = theme;
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('theme_name', theme.name);
+    
     notifyListeners();
   }
 
@@ -39,9 +70,13 @@ class ThemeManager extends ChangeNotifier {
     }
   }
 
-  void setAccentColor(Color color) {
+  Future<void> setAccentColor(Color color) async {
     if (_customAccentColor.toARGB32() == color.toARGB32()) return;
     _customAccentColor = color;
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('accent_color', color.toARGB32());
+    
     notifyListeners();
   }
 
@@ -60,7 +95,7 @@ class ThemeManager extends ChangeNotifier {
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.all(_customAccentColor),
         trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return _customAccentColor.withValues(alpha: 0.5);
+          if (states.contains(WidgetState.selected)) return _customAccentColor.withOpacity(0.5);
           return null;
         }),
       ),
@@ -74,7 +109,6 @@ class ThemeManager extends ChangeNotifier {
           foregroundColor: isDarkMode ? Colors.black : Colors.white,
         ),
       ),
-      // Use cached font theme instead of recreating on every build
       textTheme: _cachedTextTheme ??= GoogleFonts.poppinsTextTheme(),
     );
   }

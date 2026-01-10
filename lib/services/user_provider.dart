@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 class UserProvider extends ChangeNotifier {
   String _displayName = 'User';
@@ -26,23 +29,44 @@ class UserProvider extends ChangeNotifier {
     _displayName = prefs.getString('display_name') ?? 'User';
     _photoUrl = prefs.getString('photo_url');
     _isLocalPhoto = prefs.getBool('is_local_photo') ?? false;
+    
+    // Safety check: if local file is missing, reset it to prevent crashes
+    if (_photoUrl != null && !_photoUrl!.startsWith('http')) {
+      if (!File(_photoUrl!).existsSync()) {
+        _photoUrl = null;
+        _isLocalPhoto = false;
+      }
+    }
+    
     notifyListeners();
   }
 
   Future<void> setLocalProfile(String name, String? photoPath) async {
     _displayName = name;
-    if (photoPath != null) {
-      _photoUrl = photoPath;
-      _isLocalPhoto = true;
-    }
-    _isSignedIn = false;
-    
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('display_name', name);
-    if (photoPath != null) {
-      await prefs.setString('photo_url', photoPath);
-      await prefs.setBool('is_local_photo', true);
+
+    if (photoPath != null && !photoPath.startsWith('http')) {
+      // Copy image to permanent app directory to prevent it from disappearing
+      try {
+        final appDir = await getApplicationDocumentsDirectory();
+        final fileName = path.basename(photoPath);
+        final permanentPath = path.join(appDir.path, 'profile_$fileName');
+        
+        final File tempFile = File(photoPath);
+        if (tempFile.existsSync()) {
+          await tempFile.copy(permanentPath);
+          _photoUrl = permanentPath;
+          _isLocalPhoto = true;
+          await prefs.setString('photo_url', permanentPath);
+          await prefs.setBool('is_local_photo', true);
+        }
+      } catch (e) {
+        debugPrint('Error saving permanent profile pic: $e');
+      }
     }
+    
+    _isSignedIn = false;
     notifyListeners();
   }
 
@@ -86,7 +110,10 @@ class UserProvider extends ChangeNotifier {
     _displayName = 'User';
     
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    // Don't use clear() as it wipes app settings, just remove user specific keys
+    await prefs.remove('display_name');
+    await prefs.remove('photo_url');
+    await prefs.remove('is_local_photo');
     
     notifyListeners();
   }

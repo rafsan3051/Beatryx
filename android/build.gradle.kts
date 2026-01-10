@@ -17,14 +17,13 @@ subprojects {
     
     // Configure JVM compatibility for all subprojects
     afterEvaluate {
-        // Set missing namespace for legacy on_audio_query Android library to satisfy AGP 8+
+        // Set missing namespace for legacy libraries to satisfy AGP 8+
         if (project.name == "on_audio_query_android") {
             extensions.findByType<com.android.build.gradle.LibraryExtension>()?.apply {
                 namespace = "com.lucasjosino.on_audio_query"
             }
         }
 
-        // Set missing namespace for legacy share_plus Android library to satisfy AGP 8+
         if (project.name == "share_plus") {
             extensions.findByType<com.android.build.gradle.LibraryExtension>()?.apply {
                 namespace = "dev.fluttercommunity.plus.share"

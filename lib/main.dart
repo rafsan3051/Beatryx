@@ -59,9 +59,17 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<ThemeManager>(
         builder: (context, themeManager, _) {
+          final baseTheme = themeManager.toThemeData();
           return MaterialApp(
             title: 'Beatryx',
-            theme: themeManager.toThemeData(),
+            theme: baseTheme.copyWith(
+              pageTransitionsTheme: const PageTransitionsTheme(
+                builders: {
+                  TargetPlatform.android: ZoomPageTransitionsBuilder(),
+                  TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+                },
+              ),
+            ),
             debugShowCheckedModeBanner: false,
             home: const MainScreen(),
           );
@@ -88,14 +96,8 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _initialization() async {
-    // We trigger the music provider loading but don't wait for it to finish
-    // before showing the UI, to prevent the app from feeling stuck.
     Provider.of<MusicProvider>(context, listen: false);
-    
-    // Reduce wait time to 1 second for a faster feel
     await Future.delayed(const Duration(seconds: 1));
-    
-    // Remove splash screen
     FlutterNativeSplash.remove();
   }
 
@@ -112,7 +114,20 @@ class _MainScreenState extends State<MainScreen> {
       extendBody: true,
       body: Stack(
         children: [
-          _widgetOptions.elementAt(_selectedIndex),
+          // Smooth Tab Transition for the whole app
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 400),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return FadeTransition(
+                opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
+                child: child,
+              );
+            },
+            child: KeyedSubtree(
+              key: ValueKey<int>(_selectedIndex),
+              child: _widgetOptions.elementAt(_selectedIndex),
+            ),
+          ),
           
           Positioned(
             left: 0,

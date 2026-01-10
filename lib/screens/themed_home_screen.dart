@@ -5,59 +5,132 @@ import 'package:provider/provider.dart';
 import '../services/music_provider.dart';
 import '../services/theme_manager.dart';
 import '../services/user_provider.dart';
+import '../services/audio_service.dart';
 import 'themed_player_screen.dart';
 import 'all_songs_screen.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
-class ThemedHomeScreen extends StatelessWidget {
+enum SongSortOrder {
+  newest,
+  oldest,
+  alphabetical,
+  artist
+}
+
+class ThemedHomeScreen extends StatefulWidget {
   const ThemedHomeScreen({super.key});
 
+  @override
+  State<ThemedHomeScreen> createState() => _ThemedHomeScreenState();
+}
+
+class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
+  SongSortOrder _currentSortOrder = SongSortOrder.newest;
+
   void _showProfileMenu(BuildContext context, UserProvider userProvider, ThemeManager theme) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      backgroundColor: theme.surfaceColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      builder: (context) => Center(
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 32),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: theme.surfaceColor,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              )
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Profile Settings',
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: theme.textColor,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                _buildFloatingOption(
+                  icon: Icons.person_outline_rounded,
+                  title: 'Set Profile Manually',
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showManualProfileDialog(context, userProvider, theme);
+                  },
+                  theme: theme,
+                ),
+                const SizedBox(height: 12),
+                _buildFloatingOption(
+                  icon: Icons.login_rounded,
+                  title: 'Sign in with Google',
+                  onTap: () {
+                    Navigator.pop(context);
+                    userProvider.signInWithGoogle();
+                  },
+                  theme: theme,
+                ),
+                if (userProvider.isSignedIn) ...[
+                  const SizedBox(height: 12),
+                  _buildFloatingOption(
+                    icon: Icons.logout_rounded,
+                    title: 'Sign Out',
+                    onTap: () {
+                      Navigator.pop(context);
+                      userProvider.signOut();
+                    },
+                    theme: theme,
+                    isDestructive: true,
+                  ),
+                ],
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Close', style: TextStyle(color: theme.subtitleColor)),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    );
+  }
+
+  Widget _buildFloatingOption({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    required ThemeManager theme,
+    bool isDestructive = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          color: theme.textColor.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
           children: [
+            Icon(icon, color: isDestructive ? Colors.redAccent : theme.accentColor),
+            const SizedBox(width: 16),
             Text(
-              'Profile Settings',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: theme.textColor,
+              title,
+              style: TextStyle(
+                color: isDestructive ? Colors.redAccent : theme.textColor,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 24),
-            ListTile(
-              leading: Icon(Icons.person_outline_rounded, color: theme.textColor),
-              title: Text('Set Profile Manually', style: TextStyle(color: theme.textColor)),
-              onTap: () {
-                Navigator.pop(context);
-                _showManualProfileDialog(context, userProvider, theme);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.login_rounded, color: theme.textColor),
-              title: Text('Sign in with Google', style: TextStyle(color: theme.textColor)),
-              onTap: () {
-                Navigator.pop(context);
-                userProvider.signInWithGoogle();
-              },
-            ),
-            if (userProvider.isSignedIn)
-              ListTile(
-                leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-                title: const Text('Sign Out', style: TextStyle(color: Colors.redAccent)),
-                onTap: () {
-                  Navigator.pop(context);
-                  userProvider.signOut();
-                },
-              ),
           ],
         ),
       ),
@@ -70,28 +143,42 @@ class ThemedHomeScreen extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: theme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         title: Text('Set Profile', style: TextStyle(color: theme.textColor)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library_rounded),
-              title: const Text('Pick Avatar Image'),
+            InkWell(
               onTap: () async {
                 await userProvider.pickLocalAvatar();
-                if (dialogContext.mounted) {
-                  Navigator.pop(dialogContext);
-                }
               },
+              borderRadius: BorderRadius.circular(50),
+              child: Consumer<UserProvider>(
+                builder: (context, user, _) => CircleAvatar(
+                  radius: 40,
+                  backgroundColor: theme.accentColor.withOpacity(0.1),
+                  backgroundImage: user.photoUrl != null && File(user.photoUrl!).existsSync()
+                      ? FileImage(File(user.photoUrl!))
+                      : null,
+                  child: user.photoUrl == null || !File(user.photoUrl!).existsSync()
+                      ? Icon(Icons.add_a_photo_rounded, color: theme.accentColor)
+                      : null,
+                ),
+              ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 24),
             TextField(
               controller: nameController,
               style: TextStyle(color: theme.textColor),
               decoration: InputDecoration(
                 hintText: 'Enter your name',
                 hintStyle: TextStyle(color: theme.subtitleColor),
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: theme.subtitleColor)),
+                filled: true,
+                fillColor: theme.textColor.withOpacity(0.05),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
           ],
@@ -106,10 +193,80 @@ class ThemedHomeScreen extends StatelessWidget {
               userProvider.setLocalProfile(nameController.text, userProvider.photoUrl);
               Navigator.pop(dialogContext);
             },
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             child: const Text('Save'),
           ),
         ],
       ),
+    );
+  }
+
+  List<SongModel> _getSortedSongs(List<SongModel> songs) {
+    List<SongModel> sortedSongs = List.from(songs);
+    switch (_currentSortOrder) {
+      case SongSortOrder.newest:
+        sortedSongs.sort((a, b) => (b.dateAdded ?? 0).compareTo(a.dateAdded ?? 0));
+        break;
+      case SongSortOrder.oldest:
+        sortedSongs.sort((a, b) => (a.dateAdded ?? 0).compareTo(b.dateAdded ?? 0));
+        break;
+      case SongSortOrder.alphabetical:
+        sortedSongs.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+        break;
+      case SongSortOrder.artist:
+        sortedSongs.sort((a, b) => (a.artist ?? '').toLowerCase().compareTo((b.artist ?? '').toLowerCase()));
+        break;
+    }
+    return sortedSongs;
+  }
+
+  void _showSortOptions(BuildContext context, ThemeManager theme) {
+    showDialog(
+      context: context,
+      builder: (context) => Center(
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 32),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: theme.surfaceColor,
+            borderRadius: BorderRadius.circular(28),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Sort By', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: theme.textColor)),
+                const SizedBox(height: 16),
+                _buildSortOption('Newest First', SongSortOrder.newest, theme),
+                _buildSortOption('Oldest First', SongSortOrder.oldest, theme),
+                _buildSortOption('Alphabetical (A-Z)', SongSortOrder.alphabetical, theme),
+                _buildSortOption('Artist Name', SongSortOrder.artist, theme),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSortOption(String title, SongSortOrder order, ThemeManager theme) {
+    final isSelected = _currentSortOrder == order;
+    return ListTile(
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isSelected ? theme.accentColor : theme.textColor,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      trailing: isSelected ? Icon(Icons.check_circle, color: theme.accentColor) : null,
+      onTap: () {
+        setState(() => _currentSortOrder = order);
+        Navigator.pop(context);
+      },
     );
   }
 
@@ -119,252 +276,159 @@ class ThemedHomeScreen extends StatelessWidget {
     final musicProvider = Provider.of<MusicProvider>(context);
     final userProvider = Provider.of<UserProvider>(context);
 
+    final sortedSongs = _getSortedSongs(musicProvider.songs);
+
     return Scaffold(
       backgroundColor: theme.backgroundColor,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 20),
-              // Header with Interactive Avatar
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Hello, ${userProvider.displayName}!',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: theme.textColor,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => _showProfileMenu(context, userProvider, theme),
-                    child: CircleAvatar(
-                      radius: 22,
-                      backgroundColor: theme.surfaceColor,
-                      backgroundImage: userProvider.photoUrl != null 
-                          ? (userProvider.isSignedIn 
-                              ? NetworkImage(userProvider.photoUrl!) 
-                              : FileImage(File(userProvider.photoUrl!)) as ImageProvider)
-                          : null,
-                      child: userProvider.photoUrl == null 
-                          ? Icon(Icons.person_rounded, color: theme.textColor.withValues(alpha: 0.7))
-                          : null,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
-              // Search Bar
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                decoration: BoxDecoration(
-                  color: theme.surfaceColor,
-                  borderRadius: BorderRadius.circular(35),
-                ),
-                child: TextField(
-                  style: TextStyle(color: theme.textColor),
-                  decoration: InputDecoration(
-                    hintText: 'Search for a song',
-                    hintStyle: GoogleFonts.poppins(color: theme.subtitleColor, fontSize: 15),
-                    suffixIcon: Icon(Icons.search_rounded, color: theme.subtitleColor, size: 24),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 18),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              // Categories
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Select Categories',
-                    style: GoogleFonts.poppins(fontSize: 19, fontWeight: FontWeight.w600, color: theme.textColor),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                height: 46,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildCategory('All', true, theme, context),
-                    _buildCategory('Relax', false, theme, context),
-                    _buildCategory('Sad', false, theme, context),
-                    _buildCategory('Party', false, theme, context),
-                    _buildCategory('Rock', false, theme, context),
+                    const SizedBox(height: 20),
+                    // Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Hello, ${userProvider.displayName}!',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: theme.textColor,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => _showProfileMenu(context, userProvider, theme),
+                          child: Consumer<UserProvider>(
+                            builder: (context, user, _) => CircleAvatar(
+                              radius: 22,
+                              backgroundColor: theme.surfaceColor,
+                              backgroundImage: user.photoUrl != null 
+                                  ? (user.isSignedIn 
+                                      ? NetworkImage(user.photoUrl!) 
+                                      : (File(user.photoUrl!).existsSync() ? FileImage(File(user.photoUrl!)) : null) as ImageProvider?)
+                                  : null,
+                              child: user.photoUrl == null || (!user.isSignedIn && !File(user.photoUrl!).existsSync())
+                                  ? Icon(Icons.person_rounded, color: theme.textColor.withOpacity(0.7))
+                                  : null,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 28),
+                    // Search Bar
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: theme.surfaceColor,
+                        borderRadius: BorderRadius.circular(35),
+                      ),
+                      child: TextField(
+                        style: TextStyle(color: theme.textColor),
+                        decoration: InputDecoration(
+                          hintText: 'Search for a song',
+                          hintStyle: GoogleFonts.poppins(color: theme.subtitleColor, fontSize: 15),
+                          suffixIcon: Icon(Icons.search_rounded, color: theme.subtitleColor, size: 24),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 18),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    // Sorting and Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'All Songs',
+                          style: GoogleFonts.poppins(fontSize: 19, fontWeight: FontWeight.w600, color: theme.textColor),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.sort_rounded, color: theme.accentColor),
+                          onPressed: () => _showSortOptions(context, theme),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
-              // Popular Songs
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Popular songs',
-                    style: GoogleFonts.poppins(fontSize: 19, fontWeight: FontWeight.w600, color: theme.textColor),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const AllSongsScreen()));
-                    },
-                    child: Text('See All', style: TextStyle(color: theme.accentColor)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                height: 280,
-                child: musicProvider.isLoading 
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: musicProvider.songs.length.clamp(0, 10),
-                      itemBuilder: (context, index) {
-                        return _buildPopularSongCard(context, musicProvider.songs[index], theme, musicProvider.songs, index);
-                      },
+            ),
+            
+            musicProvider.isLoading
+              ? const SliverFillRemaining(child: Center(child: CircularProgressIndicator()))
+              : sortedSongs.isEmpty
+                ? SliverFillRemaining(child: Center(child: Text("No Songs Found", style: TextStyle(color: theme.textColor))))
+                : SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final song = sortedSongs[index];
+                          return TweenAnimationBuilder<double>(
+                            duration: Duration(milliseconds: 300 + (index % 10 * 50)),
+                            tween: Tween(begin: 0.0, end: 1.0),
+                            curve: Curves.easeOutCubic,
+                            builder: (context, value, child) => Transform.translate(
+                              offset: Offset(0, 20 * (1 - value)),
+                              child: Opacity(opacity: value, child: child),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              leading: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: QueryArtworkWidget(
+                                  id: song.id,
+                                  type: ArtworkType.AUDIO,
+                                  nullArtworkWidget: Container(
+                                    width: 50,
+                                    height: 50,
+                                    color: theme.surfaceColor,
+                                    child: Icon(Icons.music_note_rounded, color: theme.subtitleColor),
+                                  ),
+                                ),
+                              ),
+                              title: Text(
+                                song.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: theme.textColor, fontWeight: FontWeight.w600),
+                              ),
+                              subtitle: Text(
+                                song.artist ?? 'Unknown Artist',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: theme.subtitleColor, fontSize: 12),
+                              ),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ThemedPlayerScreen(
+                                      songs: sortedSongs,
+                                      initialIndex: index,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                        childCount: sortedSongs.length,
+                      ),
                     ),
-              ),
-              const SizedBox(height: 32),
-              // Recently Listened
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Recently listened',
-                    style: GoogleFonts.poppins(fontSize: 19, fontWeight: FontWeight.w600, color: theme.textColor),
                   ),
-                  Icon(Icons.chevron_right_rounded, color: theme.subtitleColor, size: 28),
-                ],
-              ),
-              const SizedBox(height: 18),
-              if (musicProvider.songs.isNotEmpty)
-                _buildRecentLargeCard(context, musicProvider.songs[0], theme),
-              const SizedBox(height: 120),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategory(String label, bool isSelected, ThemeManager theme, BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        if (label == 'All') {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const AllSongsScreen()));
-        }
-      },
-      child: Container(
-        margin: const EdgeInsets.only(right: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 30),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF00C2A0) : theme.surfaceColor,
-          borderRadius: BorderRadius.circular(25),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: GoogleFonts.poppins(
-              color: isSelected ? Colors.black : theme.subtitleColor,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              fontSize: 14,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPopularSongCard(BuildContext context, SongModel song, ThemeManager theme, List<SongModel> allSongs, int index) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => ThemedPlayerScreen(songs: allSongs, initialIndex: index)));
-      },
-      child: Container(
-        width: 175,
-        margin: const EdgeInsets.only(right: 20),
-        decoration: BoxDecoration(
-          color: theme.surfaceColor,
-          borderRadius: BorderRadius.circular(32),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(32),
-                child: QueryArtworkWidget(
-                  id: song.id,
-                  type: ArtworkType.AUDIO,
-                  artworkWidth: 175,
-                  artworkHeight: double.infinity,
-                  artworkFit: BoxFit.cover,
-                  nullArtworkWidget: Container(
-                    color: Colors.white10,
-                    child: Icon(Icons.music_note_rounded, size: 64, color: theme.subtitleColor),
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    song.title,
-                    maxLines: 1,
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14, color: theme.textColor),
-                  ),
-                  Text(
-                    song.artist ?? 'Unknown',
-                    maxLines: 1,
-                    style: GoogleFonts.poppins(color: theme.subtitleColor, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
+            
+            const SliverToBoxAdapter(child: SizedBox(height: 150)),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildRecentLargeCard(BuildContext context, SongModel song, ThemeManager theme) {
-    return Container(
-      width: double.infinity,
-      height: 220,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(35),
-        image: const DecorationImage(
-          image: NetworkImage('https://picsum.photos/seed/music/600/400'),
-          fit: BoxFit.cover,
-          opacity: 0.6,
-        ),
-      ),
-      child: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(35),
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.transparent, Colors.black87],
-              ),
-            ),
-          ),
-          const Center(
-            child: Icon(Icons.play_circle_fill_rounded, size: 64, color: Colors.white70),
-          ),
-        ],
       ),
     );
   }

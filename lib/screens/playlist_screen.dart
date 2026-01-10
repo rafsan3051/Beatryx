@@ -4,6 +4,7 @@ import '../services/playlist_service.dart';
 import '../services/theme_manager.dart';
 import '../services/music_provider.dart';
 import 'themed_player_screen.dart';
+import 'package:on_audio_query/on_audio_query.dart';
 
 class PlaylistScreen extends StatelessWidget {
   const PlaylistScreen({super.key});
@@ -79,7 +80,6 @@ class PlaylistScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeManager>(context);
     final playlistService = Provider.of<PlaylistService>(context);
-    final musicProvider = Provider.of<MusicProvider>(context);
 
     return Scaffold(
       backgroundColor: theme.backgroundColor,
@@ -150,29 +150,152 @@ class PlaylistScreen extends StatelessWidget {
                     onPressed: () => _showPlaylistOptions(context, playlist.id, playlist.name),
                   ),
                   onTap: () {
-                    final playlistSongs = musicProvider.songs.where((song) => 
-                      playlist.songIds.contains(song.id.toString())
-                    ).toList();
-                    
-                    if (playlistSongs.isNotEmpty) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ThemedPlayerScreen(
-                            songs: playlistSongs,
-                            initialIndex: 0,
-                          ),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Playlist is empty. Add songs from the Home screen.')),
-                      );
-                    }
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PlaylistDetailScreen(playlistId: playlist.id),
+                      ),
+                    );
                   },
                 );
               },
             ),
+    );
+  }
+}
+
+class PlaylistDetailScreen extends StatefulWidget {
+  final String playlistId;
+  const PlaylistDetailScreen({super.key, required this.playlistId});
+
+  @override
+  State<PlaylistDetailScreen> createState() => _PlaylistDetailScreenState();
+}
+
+class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
+  void _showAddSongsDialog() {
+    final musicProvider = Provider.of<MusicProvider>(context, listen: false);
+    final playlistService = Provider.of<PlaylistService>(context, listen: false);
+    final theme = Provider.of<ThemeManager>(context, listen: false);
+    
+    final playlist = playlistService.playlists.firstWhere((p) => p.id == widget.playlistId);
+    final availableSongs = musicProvider.songs.where((s) => !playlist.songIds.contains(s.id.toString())).toList();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: theme.backgroundColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        maxChildSize: 0.9,
+        minChildSize: 0.5,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text('Add Songs', style: TextStyle(color: theme.textColor, fontSize: 20, fontWeight: FontWeight.bold)),
+            ),
+            Expanded(
+              child: availableSongs.isEmpty
+                ? Center(child: Text('All songs are already in this playlist', style: TextStyle(color: theme.subtitleColor)))
+                : ListView.builder(
+                    controller: scrollController,
+                    itemCount: availableSongs.length,
+                    itemBuilder: (context, index) {
+                      final song = availableSongs[index];
+                      return ListTile(
+                        leading: QueryArtworkWidget(
+                          id: song.id,
+                          type: ArtworkType.AUDIO,
+                          nullArtworkWidget: Icon(Icons.music_note, color: theme.subtitleColor),
+                        ),
+                        title: Text(song.title, style: TextStyle(color: theme.textColor), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(song.artist ?? 'Unknown', style: TextStyle(color: theme.subtitleColor)),
+                        onTap: () {
+                          playlistService.addSongToPlaylist(widget.playlistId, song.id.toString());
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added ${song.title}')));
+                        },
+                      );
+                    },
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Provider.of<ThemeManager>(context);
+    final playlistService = Provider.of<PlaylistService>(context);
+    final musicProvider = Provider.of<MusicProvider>(context);
+    
+    final playlist = playlistService.playlists.firstWhere((p) => p.id == widget.playlistId);
+    final playlistSongs = musicProvider.songs.where((s) => playlist.songIds.contains(s.id.toString())).toList();
+
+    return Scaffold(
+      backgroundColor: theme.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        title: Text(playlist.name, style: TextStyle(color: theme.textColor)),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: theme.textColor),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: playlistSongs.isEmpty
+        ? Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.music_note_rounded, size: 64, color: theme.subtitleColor),
+                const SizedBox(height: 16),
+                Text('Empty Playlist', style: TextStyle(color: theme.textColor, fontSize: 18)),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _showAddSongsDialog,
+                  child: const Text('Add Songs'),
+                ),
+              ],
+            ),
+          )
+        : ListView.builder(
+            padding: const EdgeInsets.only(bottom: 100),
+            itemCount: playlistSongs.length,
+            itemBuilder: (context, index) {
+              final song = playlistSongs[index];
+              return ListTile(
+                leading: QueryArtworkWidget(
+                  id: song.id,
+                  type: ArtworkType.AUDIO,
+                  nullArtworkWidget: Icon(Icons.music_note, color: theme.subtitleColor),
+                ),
+                title: Text(song.title, style: TextStyle(color: theme.textColor), maxLines: 1, overflow: TextOverflow.ellipsis),
+                subtitle: Text(song.artist ?? 'Unknown', style: TextStyle(color: theme.subtitleColor)),
+                trailing: IconButton(
+                  icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
+                  onPressed: () => playlistService.removeSongFromPlaylist(widget.playlistId, song.id.toString()),
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ThemedPlayerScreen(songs: playlistSongs, initialIndex: index),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+      floatingActionButton: playlistSongs.isNotEmpty ? FloatingActionButton(
+        onPressed: _showAddSongsDialog,
+        backgroundColor: theme.accentColor,
+        child: const Icon(Icons.add, color: Colors.black),
+      ) : null,
     );
   }
 }

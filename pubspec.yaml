@@ -35,7 +35,7 @@ dependencies:
   # Auth & Profile
   google_sign_in: ^6.2.1
   image_picker: ^1.1.2
-  # Splash Screen (moved to dependencies to use in main.dart)
+  # Splash Screen
   flutter_native_splash: ^2.4.0
 
 dev_dependencies:
@@ -71,10 +71,10 @@ flutter_launcher_icons:
 # Splash Screen Configuration
 flutter_native_splash:
   color: "#0F0F0F"
-  image: "assets/images/app_logo.png"
+  image: "assets/images/app_logo_white.png"
   branding: "assets/images/app_name.png" 
   
   android_12:
-    image: "assets/images/app_logo.png"
+    image: "assets/images/app_logo_white.png"
     color: "#0F0F0F"
     branding: "assets/images/app_name.png"
