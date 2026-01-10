@@ -9,12 +9,13 @@ class AudioPlayerService extends ChangeNotifier {
   List<SongModel> _playlist = [];
   bool _autoplayNext = true;
   bool _showMiniPlayer = true;
+  bool _isProcessing = false;
 
   AudioPlayer get audioPlayer => _audioPlayer;
   
   SongModel? get currentSong {
     final index = _audioPlayer.currentIndex;
-    if (index != null && index < _playlist.length) {
+    if (index != null && index >= 0 && index < _playlist.length) {
       return _playlist[index];
     }
     return null;
@@ -34,40 +35,49 @@ class AudioPlayerService extends ChangeNotifier {
   }
 
   Future<void> playPlaylist(List<SongModel> songs, int initialIndex) async {
-    _playlist = songs;
+    if (_isProcessing) return;
+    _isProcessing = true;
     
-    final audioSources = songs.map((song) {
-      return AudioSource.uri(
-        Uri.parse(song.uri!),
-        tag: MediaItem(
-          id: song.id.toString(),
-          album: song.album ?? "Unknown Album",
-          title: song.title,
-          artist: song.artist ?? "Unknown Artist",
-          artUri: null,
-        ),
+    try {
+      _playlist = songs;
+      
+      final audioSources = songs.map((song) {
+        return AudioSource.uri(
+          Uri.parse(song.uri!),
+          tag: MediaItem(
+            id: song.id.toString(),
+            album: song.album ?? "Unknown Album",
+            title: song.title,
+            artist: song.artist ?? "Unknown Artist",
+            artUri: null,
+          ),
+        );
+      }).toList();
+
+      await _audioPlayer.setAudioSource(
+        ConcatenatingAudioSource(children: audioSources),
+        initialIndex: initialIndex,
+        initialPosition: Duration.zero,
       );
-    }).toList();
-
-    await _audioPlayer.setAudioSources(
-      audioSources,
-      initialIndex: initialIndex,
-      initialPosition: Duration.zero,
-    );
-    
-    _audioPlayer.play();
-    notifyListeners();
-  }
-
-  void playNext() {
-    if (_audioPlayer.hasNext) {
-      _audioPlayer.seekToNext();
+      
+      _audioPlayer.play();
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error loading playlist: $e");
+    } finally {
+      _isProcessing = false;
     }
   }
 
-  void playPrevious() {
+  Future<void> playNext() async {
+    if (_audioPlayer.hasNext) {
+      await _audioPlayer.seekToNext();
+    }
+  }
+
+  Future<void> playPrevious() async {
     if (_audioPlayer.hasPrevious) {
-      _audioPlayer.seekToPrevious();
+      await _audioPlayer.seekToPrevious();
     }
   }
 

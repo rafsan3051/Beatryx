@@ -106,13 +106,11 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _removeNativeSplash() async {
-    // Initial call to load music provider
+    // Start initial work
     Provider.of<MusicProvider>(context, listen: false);
     
-    // Brief delay to ensure app is ready
-    await Future.delayed(const Duration(milliseconds: 500));
-    
-    // Remove the static Native Splash to show the Animated Flutter Splash
+    // We remove the native splash IMMEDIATELY so your custom splash can start its animation.
+    // This prevents the "stretched/static" native logo from staying visible.
     FlutterNativeSplash.remove();
   }
 
@@ -141,7 +139,7 @@ class _MainScreenState extends State<MainScreen> {
       extendBody: true,
       body: Stack(
         children: [
-          // Dynamic background tint for the whole app
+          // Dynamic background tint
           Consumer<PaletteService>(
             builder: (context, palette, _) => AnimatedContainer(
               duration: const Duration(seconds: 1),
@@ -159,7 +157,6 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ),
 
-          // Sliding Tab View
           PageView(
             controller: _pageController,
             physics: const BouncingScrollPhysics(),
@@ -171,7 +168,6 @@ class _MainScreenState extends State<MainScreen> {
             children: _widgetOptions,
           ),
           
-          // Glassmorphism Bottom Navigation and MiniPlayer
           Positioned(
             left: 0,
             right: 0,
@@ -191,7 +187,6 @@ class _MainScreenState extends State<MainScreen> {
                   },
                 ),
 
-                // Glassmorphism Bottom Bar
                 Container(
                   margin: const EdgeInsets.fromLTRB(20, 0, 20, 30),
                   height: 80,
