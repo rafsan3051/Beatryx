@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/ui_config.dart';
 
+enum SwipeAction {
+  none,
+  favorite,
+  playlist,
+  delete
+}
+
 class UIManager extends ChangeNotifier {
   UIConfig _currentUI = UIConfig.vibrantDark;
   bool _darkMode = true;
@@ -12,6 +19,11 @@ class UIManager extends ChangeNotifier {
   bool _shuffleMode = false;
   bool _favoriteMode = false;
 
+  // Swipe Action Settings
+  bool _swipeEnabled = true;
+  SwipeAction _leftToRightAction = SwipeAction.favorite;
+  SwipeAction _rightToLeftAction = SwipeAction.playlist;
+
   UIConfig get currentUI => _currentUI;
   bool get darkMode => _darkMode;
   bool get showLyrics => _showLyrics;
@@ -20,6 +32,10 @@ class UIManager extends ChangeNotifier {
   bool get repeatMode => _repeatMode;
   bool get shuffleMode => _shuffleMode;
   bool get favoriteMode => _favoriteMode;
+
+  bool get swipeEnabled => _swipeEnabled;
+  SwipeAction get leftToRightAction => _leftToRightAction;
+  SwipeAction get rightToLeftAction => _rightToLeftAction;
 
   UIManager() {
     _loadUI();
@@ -43,6 +59,32 @@ class UIManager extends ChangeNotifier {
     _shuffleMode = prefs.getBool('shuffle_mode') ?? false;
     _favoriteMode = prefs.getBool('favorite_mode') ?? false;
 
+    // Load Swipe Actions
+    _swipeEnabled = prefs.getBool('swipe_enabled') ?? true;
+    _leftToRightAction = SwipeAction.values[prefs.getInt('ltr_action') ?? SwipeAction.favorite.index];
+    _rightToLeftAction = SwipeAction.values[prefs.getInt('rtl_action') ?? SwipeAction.playlist.index];
+
+    notifyListeners();
+  }
+
+  Future<void> setSwipeEnabled(bool value) async {
+    _swipeEnabled = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('swipe_enabled', value);
+    notifyListeners();
+  }
+
+  Future<void> setLeftToRightAction(SwipeAction action) async {
+    _leftToRightAction = action;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('ltr_action', action.index);
+    notifyListeners();
+  }
+
+  Future<void> setRightToLeftAction(SwipeAction action) async {
+    _rightToLeftAction = action;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('rtl_action', action.index);
     notifyListeners();
   }
 

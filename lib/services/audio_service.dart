@@ -7,18 +7,24 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AudioPlayerService extends ChangeNotifier {
   final AudioPlayer _audioPlayer = AudioPlayer();
   List<SongModel> _playlist = [];
-  int _currentIndex = -1;
   bool _autoplayNext = true;
   bool _showMiniPlayer = true;
 
   AudioPlayer get audioPlayer => _audioPlayer;
-  SongModel? get currentSong =>
-      _currentIndex == -1 ? null : _playlist[_currentIndex];
+  
+  SongModel? get currentSong {
+    final index = _audioPlayer.currentIndex;
+    if (index != null && index < _playlist.length) {
+      return _playlist[index];
+    }
+    return null;
+  }
+
   bool get isPlaying => _audioPlayer.playing;
   bool get autoplayNext => _autoplayNext;
   bool get showMiniPlayer => _showMiniPlayer;
   List<SongModel> get playlist => _playlist;
-  int get currentIndex => _currentIndex;
+  int get currentIndex => _audioPlayer.currentIndex ?? -1;
 
   Stream<Duration> get positionStream => _audioPlayer.positionStream;
   Stream<Duration?> get durationStream => _audioPlayer.durationStream;
@@ -27,44 +33,41 @@ class AudioPlayerService extends ChangeNotifier {
     await _audioPlayer.seek(position);
   }
 
-  void playPlaylist(List<SongModel> songs, int initialIndex) {
+  Future<void> playPlaylist(List<SongModel> songs, int initialIndex) async {
     _playlist = songs;
-    _currentIndex = initialIndex;
-    _playCurrent();
+    
+    final audioSources = songs.map((song) {
+      return AudioSource.uri(
+        Uri.parse(song.uri!),
+        tag: MediaItem(
+          id: song.id.toString(),
+          album: song.album ?? "Unknown Album",
+          title: song.title,
+          artist: song.artist ?? "Unknown Artist",
+          artUri: null,
+        ),
+      );
+    }).toList();
+
+    await _audioPlayer.setAudioSources(
+      audioSources,
+      initialIndex: initialIndex,
+      initialPosition: Duration.zero,
+    );
+    
+    _audioPlayer.play();
     notifyListeners();
   }
 
-  void _playCurrent() {
-    if (currentSong != null) {
-      _audioPlayer.setAudioSource(
-        AudioSource.uri(
-          Uri.parse(currentSong!.uri!),
-          tag: MediaItem(
-            id: currentSong!.id.toString(),
-            album: currentSong!.album ?? "Unknown Album",
-            title: currentSong!.title,
-            artist: currentSong!.artist ?? "Unknown Artist",
-            artUri: null, // You could add artwork URI here for notifications
-          ),
-        ),
-      );
-      _audioPlayer.play();
-    }
-  }
-
   void playNext() {
-    if (_currentIndex < _playlist.length - 1) {
-      _currentIndex++;
-      _playCurrent();
-      notifyListeners();
+    if (_audioPlayer.hasNext) {
+      _audioPlayer.seekToNext();
     }
   }
 
   void playPrevious() {
-    if (_currentIndex > 0) {
-      _currentIndex--;
-      _playCurrent();
-      notifyListeners();
+    if (_audioPlayer.hasPrevious) {
+      _audioPlayer.seekToPrevious();
     }
   }
 
@@ -82,11 +85,28 @@ class AudioPlayerService extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Shuffle & Repeat functionality
+  bool get isShuffleMode => _audioPlayer.shuffleModeEnabled;
+  LoopMode get repeatMode => _audioPlayer.loopMode;
+
+  void toggleShuffle() {
+    _audioPlayer.setShuffleModeEnabled(!isShuffleMode);
+    notifyListeners();
+  }
+
+  void nextRepeatMode() {
+    final modes = [LoopMode.off, LoopMode.all, LoopMode.one];
+    final nextIndex = (modes.indexOf(repeatMode) + 1) % modes.length;
+    _audioPlayer.setLoopMode(modes[nextIndex]);
+    notifyListeners();
+  }
+
   AudioPlayerService() {
     _audioPlayer.playerStateStream.listen((state) {
-      if (state.processingState == ProcessingState.completed && _autoplayNext) {
-        playNext();
-      }
+      notifyListeners();
+    });
+
+    _audioPlayer.currentIndexStream.listen((index) {
       notifyListeners();
     });
 

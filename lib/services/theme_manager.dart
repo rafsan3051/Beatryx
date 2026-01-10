@@ -19,7 +19,7 @@ class ThemeManager extends ChangeNotifier {
   Color get primaryColor => _currentTheme.primaryColor;
   
   List<BoxShadow> get cardShadows => isDarkMode ? [] : [
-    BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 20, offset: const Offset(0, 10))
+    BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 20, offset: const Offset(0, 10))
   ];
   
   List<BoxShadow> get neumorphicShadows => _currentTheme.neumorphicShadows;
@@ -95,7 +95,7 @@ class ThemeManager extends ChangeNotifier {
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.all(_customAccentColor),
         trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return _customAccentColor.withOpacity(0.5);
+          if (states.contains(WidgetState.selected)) return _customAccentColor.withValues(alpha: 0.5);
           return null;
         }),
       ),

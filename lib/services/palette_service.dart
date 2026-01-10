@@ -8,8 +8,12 @@ class PaletteService extends ChangeNotifier {
   Color get dominantColor => _dominantColor;
 
   final OnAudioQuery _audioQuery = OnAudioQuery();
+  int? _currentSongId;
 
   Future<void> updatePalette(int songId) async {
+    if (_currentSongId == songId) return;
+    _currentSongId = songId;
+
     try {
       final Uint8List? artwork = await _audioQuery.queryArtwork(
         songId,
@@ -23,14 +27,21 @@ class PaletteService extends ChangeNotifier {
           MemoryImage(artwork),
           maximumColorCount: 10,
         );
-        _dominantColor = paletteGenerator.dominantColor?.color ?? const Color(0xFF1E1E1E);
+        
+        final newColor = paletteGenerator.dominantColor?.color ?? const Color(0xFF1E1E1E);
+        if (_dominantColor != newColor) {
+          _dominantColor = newColor;
+          notifyListeners();
+        }
       } else {
-        _dominantColor = const Color(0xFF1E1E1E);
+        if (_dominantColor != const Color(0xFF1E1E1E)) {
+          _dominantColor = const Color(0xFF1E1E1E);
+          notifyListeners();
+        }
       }
-      notifyListeners();
     } catch (e) {
-      _dominantColor = const Color(0xFF1E1E1E);
-      notifyListeners();
+      // Keep previous color on error to avoid flashing
+      debugPrint('Palette generation error: $e');
     }
   }
 }

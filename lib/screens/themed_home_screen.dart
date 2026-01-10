@@ -5,9 +5,8 @@ import 'package:provider/provider.dart';
 import '../services/music_provider.dart';
 import '../services/theme_manager.dart';
 import '../services/user_provider.dart';
-import '../services/audio_service.dart';
+import '../services/playlist_service.dart';
 import 'themed_player_screen.dart';
-import 'all_songs_screen.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 enum SongSortOrder {
@@ -39,7 +38,7 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               )
@@ -70,7 +69,7 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                 ),
                 const SizedBox(height: 12),
                 _buildFloatingOption(
-                  icon: Icons.login_rounded,
+                  imageAsset: 'assets/icons/google_logo.png',
                   title: 'Sign in with Google',
                   onTap: () {
                     Navigator.pop(context);
@@ -105,7 +104,8 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
   }
 
   Widget _buildFloatingOption({
-    required IconData icon,
+    IconData? icon,
+    String? imageAsset,
     required String title,
     required VoidCallback onTap,
     required ThemeManager theme,
@@ -117,12 +117,15 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: theme.textColor.withOpacity(0.05),
+          color: theme.textColor.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
-            Icon(icon, color: isDestructive ? Colors.redAccent : theme.accentColor),
+            if (imageAsset != null)
+              Image.asset(imageAsset, width: 24, height: 24)
+            else if (icon != null)
+              Icon(icon, color: isDestructive ? Colors.redAccent : theme.accentColor),
             const SizedBox(width: 16),
             Text(
               title,
@@ -156,7 +159,7 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
               child: Consumer<UserProvider>(
                 builder: (context, user, _) => CircleAvatar(
                   radius: 40,
-                  backgroundColor: theme.accentColor.withOpacity(0.1),
+                  backgroundColor: theme.accentColor.withValues(alpha: 0.1),
                   backgroundImage: user.photoUrl != null && File(user.photoUrl!).existsSync()
                       ? FileImage(File(user.photoUrl!))
                       : null,
@@ -174,7 +177,7 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                 hintText: 'Enter your name',
                 hintStyle: TextStyle(color: theme.subtitleColor),
                 filled: true,
-                fillColor: theme.textColor.withOpacity(0.05),
+                fillColor: theme.textColor.withValues(alpha: 0.05),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
@@ -240,7 +243,7 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
               children: [
                 Text('Sort By', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: theme.textColor)),
                 const SizedBox(height: 16),
-                _buildSortOption('Newest First', SongSortOrder.newest, theme),
+                _buildSortOption('Recently Added', SongSortOrder.newest, theme),
                 _buildSortOption('Oldest First', SongSortOrder.oldest, theme),
                 _buildSortOption('Alphabetical (A-Z)', SongSortOrder.alphabetical, theme),
                 _buildSortOption('Artist Name', SongSortOrder.artist, theme),
@@ -315,7 +318,7 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                                       : (File(user.photoUrl!).existsSync() ? FileImage(File(user.photoUrl!)) : null) as ImageProvider?)
                                   : null,
                               child: user.photoUrl == null || (!user.isSignedIn && !File(user.photoUrl!).existsSync())
-                                  ? Icon(Icons.person_rounded, color: theme.textColor.withOpacity(0.7))
+                                  ? Icon(Icons.person_rounded, color: theme.textColor.withValues(alpha: 0.7))
                                   : null,
                             ),
                           ),

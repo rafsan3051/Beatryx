@@ -338,7 +338,7 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                                 subtitle: Text(
                                   song.artist ?? 'Unknown', 
                                   style: TextStyle(
-                                    color: isPlaying ? const Color(0xFF00C2A0).withOpacity(0.7) : Colors.white38, 
+                                    color: isPlaying ? const Color(0xFF00C2A0).withValues(alpha: 0.7) : Colors.white38, 
                                     fontSize: 12
                                   ), 
                                   maxLines: 1

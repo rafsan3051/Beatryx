@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/theme_manager.dart';
+import '../services/ui_manager.dart';
 import 'look_feel_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -9,6 +10,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeManager = Provider.of<ThemeManager>(context);
+    final uiManager = Provider.of<UIManager>(context);
     final isDark = themeManager.isDarkMode;
 
     return Scaffold(
@@ -71,6 +73,8 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 Switch(
                   value: isDark,
+                  activeTrackColor:
+                      themeManager.accentColor.withValues(alpha: 0.5),
                   activeThumbColor: themeManager.accentColor,
                   onChanged: (value) {
                     themeManager.toggleTheme();
@@ -93,9 +97,46 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
+
+          const SizedBox(height: 24),
+          _SettingsSectionHeader(title: 'Gestures', themeManager: themeManager),
+          // Swipe Toggle
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            child: ListTile(
+              title: Text('Enable Swipe Gestures',
+                  style: TextStyle(color: themeManager.textColor)),
+              subtitle: Text('Swipe songs to trigger actions',
+                  style: TextStyle(color: themeManager.subtitleColor)),
+              trailing: Switch(
+                value: uiManager.swipeEnabled,
+                activeTrackColor:
+                    themeManager.accentColor.withValues(alpha: 0.5),
+                activeThumbColor: themeManager.accentColor,
+                onChanged: (value) => uiManager.setSwipeEnabled(value),
+              ),
+            ),
+          ),
+          if (uiManager.swipeEnabled) ...[
+            _SwipeActionTile(
+              title: 'Swipe Right',
+              currentAction: uiManager.leftToRightAction,
+              onChanged: (action) => uiManager.setLeftToRightAction(action),
+              themeManager: themeManager,
+            ),
+            _SwipeActionTile(
+              title: 'Swipe Left',
+              currentAction: uiManager.rightToLeftAction,
+              onChanged: (action) => uiManager.setRightToLeftAction(action),
+              themeManager: themeManager,
+            ),
+          ],
+
+          const SizedBox(height: 24),
+          _SettingsSectionHeader(title: 'Audio', themeManager: themeManager),
           _SettingsTile(
             icon: Icons.volume_up_outlined,
-            title: 'Audio',
+            title: 'Audio Settings',
             subtitle: 'Equalizer and quality',
             themeManager: themeManager,
             onTap: () {
@@ -111,7 +152,96 @@ class SettingsScreen extends StatelessWidget {
             themeManager: themeManager,
             onTap: null,
           ),
+          // Added space at bottom to ensure items aren't hidden by navigation bar
+          const SizedBox(height: 120),
         ],
+      ),
+    );
+  }
+}
+
+class _SwipeActionTile extends StatelessWidget {
+  final String title;
+  final SwipeAction currentAction;
+  final Function(SwipeAction) onChanged;
+  final ThemeManager themeManager;
+
+  const _SwipeActionTile({
+    required this.title,
+    required this.currentAction,
+    required this.onChanged,
+    required this.themeManager,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(title, style: TextStyle(color: themeManager.textColor)),
+      subtitle: Text(_actionToString(currentAction),
+          style: TextStyle(color: themeManager.subtitleColor)),
+      trailing:
+          Icon(Icons.chevron_right_rounded, color: themeManager.subtitleColor),
+      onTap: () => _showActionPicker(context),
+    );
+  }
+
+  String _actionToString(SwipeAction action) {
+    switch (action) {
+      case SwipeAction.none:
+        return 'None';
+      case SwipeAction.favorite:
+        return 'Add to Favourites';
+      case SwipeAction.playlist:
+        return 'Add to Playlist';
+      case SwipeAction.delete:
+        return 'Delete';
+    }
+  }
+
+  void _showActionPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: themeManager.surfaceColor,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            radioTheme: RadioThemeData(
+              fillColor: WidgetStateProperty.all(themeManager.accentColor),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var action in SwipeAction.values)
+                GestureDetector(
+                  onTap: () {
+                    onChanged(action);
+                    Navigator.pop(context);
+                  },
+                  child: ListTile(
+                    title: Text(_actionToString(action),
+                        style: const TextStyle(color: Colors.white)),
+                    leading: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: themeManager.accentColor),
+                          color: action == currentAction
+                              ? themeManager.accentColor
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -121,7 +251,8 @@ class _SettingsSectionHeader extends StatelessWidget {
   final String title;
   final ThemeManager themeManager;
 
-  const _SettingsSectionHeader({required this.title, required this.themeManager});
+  const _SettingsSectionHeader(
+      {required this.title, required this.themeManager});
 
   @override
   Widget build(BuildContext context) {

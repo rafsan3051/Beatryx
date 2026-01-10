@@ -8,6 +8,7 @@ import 'screens/themed_home_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/playlist_screen.dart';
 import 'screens/favorites_screen.dart';
+import 'screens/animated_splash_screen.dart';
 import 'services/audio_service.dart';
 import 'services/music_provider.dart';
 import 'services/theme_manager.dart';
@@ -88,17 +89,37 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+  bool _showAnimatedSplash = true;
+  late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
-    _initialization();
+    _pageController = PageController(initialPage: _selectedIndex);
+    _removeNativeSplash();
   }
 
-  void _initialization() async {
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _removeNativeSplash() async {
+    // Initial call to load music provider
     Provider.of<MusicProvider>(context, listen: false);
-    await Future.delayed(const Duration(seconds: 1));
+    
+    // Brief delay to ensure app is ready
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    // Remove the static Native Splash to show the Animated Flutter Splash
     FlutterNativeSplash.remove();
+  }
+
+  void _onSplashFinished() {
+    setState(() {
+      _showAnimatedSplash = false;
+    });
   }
 
   static final List<Widget> _widgetOptions = <Widget>[
@@ -110,25 +131,47 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_showAnimatedSplash) {
+      return AnimatedSplashScreen(onInitializationComplete: _onSplashFinished);
+    }
+
+    final theme = Provider.of<ThemeManager>(context);
+    
     return Scaffold(
       extendBody: true,
       body: Stack(
         children: [
-          // Smooth Tab Transition for the whole app
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 400),
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              return FadeTransition(
-                opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
-                child: child,
-              );
-            },
-            child: KeyedSubtree(
-              key: ValueKey<int>(_selectedIndex),
-              child: _widgetOptions.elementAt(_selectedIndex),
+          // Dynamic background tint for the whole app
+          Consumer<PaletteService>(
+            builder: (context, palette, _) => AnimatedContainer(
+              duration: const Duration(seconds: 1),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    palette.dominantColor.withValues(alpha: 0.15),
+                    theme.backgroundColor,
+                    palette.dominantColor.withValues(alpha: 0.05),
+                  ],
+                ),
+              ),
             ),
           ),
+
+          // Sliding Tab View
+          PageView(
+            controller: _pageController,
+            physics: const BouncingScrollPhysics(),
+            onPageChanged: (index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+            children: _widgetOptions,
+          ),
           
+          // Glassmorphism Bottom Navigation and MiniPlayer
           Positioned(
             left: 0,
             right: 0,
@@ -140,7 +183,7 @@ class _MainScreenState extends State<MainScreen> {
                   builder: (context, audio, _) {
                     if (audio.currentSong != null) {
                       return const Padding(
-                        padding: EdgeInsets.only(bottom: 12),
+                        padding: EdgeInsets.only(bottom: 8),
                         child: MiniPlayer(),
                       );
                     }
@@ -148,27 +191,28 @@ class _MainScreenState extends State<MainScreen> {
                   },
                 ),
 
+                // Glassmorphism Bottom Bar
                 Container(
                   margin: const EdgeInsets.fromLTRB(20, 0, 20, 30),
                   height: 80,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(40),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E1E1E).withValues(alpha: 0.8),
+                          color: Colors.white.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(40),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            _buildNavItem(0, Icons.home_rounded),
-                            _buildNavItem(1, Icons.favorite_border_rounded),
-                            _buildNavItem(2, Icons.playlist_play_rounded),
-                            _buildNavItem(3, Icons.settings_rounded),
+                            _buildNavItem(0, Icons.home_rounded, 'Home'),
+                            _buildNavItem(1, Icons.favorite_rounded, 'Favorites'),
+                            _buildNavItem(2, Icons.playlist_play_rounded, 'Playlists'),
+                            _buildNavItem(3, Icons.settings_rounded, 'Settings'),
                           ],
                         ),
                       ),
@@ -183,22 +227,50 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon) {
+  Widget _buildNavItem(int index, IconData icon, String label) {
     final isSelected = _selectedIndex == index;
+    final theme = Provider.of<ThemeManager>(context);
+    
     return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
-      child: Container(
-        width: 55,
-        height: 55,
-        decoration: isSelected ? BoxDecoration(
-          color: const Color(0xFF2D2D2D).withValues(alpha: 0.5),
-          shape: BoxShape.circle,
-        ) : null,
-        child: Icon(
-          icon,
-          color: isSelected ? Colors.white : Colors.white24,
-          size: 28,
-        ),
+      onTap: () {
+        _pageController.animateToPage(
+          index,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeInOutCubic,
+        );
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: isSelected ? theme.accentColor.withValues(alpha: 0.15) : Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: isSelected ? theme.accentColor : theme.textColor.withValues(alpha: 0.4),
+              size: 26,
+            ),
+          ),
+          const SizedBox(height: 2),
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 300),
+            opacity: isSelected ? 1.0 : 0.0,
+            child: Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                color: theme.accentColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
