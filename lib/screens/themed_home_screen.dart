@@ -601,7 +601,9 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           decoration: BoxDecoration(
-                            color: theme.surfaceColor,
+                            color: theme.isDarkMode 
+                                ? theme.surfaceColor 
+                                : theme.textColor.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(35),
                           ),
                           child: TextField(
@@ -765,7 +767,7 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                                       },
                                       onLongPress: () =>
                                           _toggleSelection(song.id),
-                                      trailing: const SizedBox.shrink(), // Corrected trailing dots removal
+                                      trailing: const SizedBox.shrink(), // Removed trailing dots
                                     ),
                                   );
 
