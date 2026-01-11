@@ -57,13 +57,13 @@ class AppTheme {
     ],
   });
 
-  // Minimal Theme (Beige/Pink)
+  // Minimal Theme (White/Beige) - Updated to use Aura's white in light mode
   static const minimal = AppTheme(
     name: 'Minimal',
     style: AppThemeStyle.minimal,
     primaryColor: Color(0xFFE8AFA0),
     secondaryColor: Color(0xFFF5E6D3),
-    backgroundColor: Color(0xFFF5E6D3),
+    backgroundColor: Colors.white, // Updated to pure white
     surfaceColor: Colors.white,
     textColor: Color(0xFF2D2D2D),
     subtitleColor: Color(0xFF757575),
@@ -76,7 +76,7 @@ class AppTheme {
     bodyLarge: 16,
     bodySmall: 12,
     cardShadows: [
-      BoxShadow(color: Color(0xFF2D2D2D), blurRadius: 12, offset: Offset(0, 4))
+      BoxShadow(color: Color(0x1A000000), blurRadius: 12, offset: Offset(0, 4))
     ],
   );
 
@@ -86,7 +86,7 @@ class AppTheme {
     style: AppThemeStyle.gradient,
     primaryColor: const Color(0xFF8B5CF6),
     secondaryColor: const Color(0xFFEC4899),
-    backgroundColor: const Color(0xFFF3E8FF),
+    backgroundColor: Colors.white, // Updated to pure white
     surfaceColor: Colors.white,
     textColor: const Color(0xFF1F2937),
     subtitleColor: const Color(0xFF6B7280),
@@ -95,7 +95,7 @@ class AppTheme {
     backgroundGradient: const LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [Color(0xFFF3E8FF), Color(0xFFFCE7F3)],
+      colors: [Colors.white, Color(0xFFFCE7F3)],
     ),
     borderRadius: 20,
     cardElevation: 4,

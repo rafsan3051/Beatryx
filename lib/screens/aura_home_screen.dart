@@ -602,187 +602,101 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
           // Banner Card
           if (topSong != null)
             SliverToBoxAdapter(
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ThemedPlayerScreen(songs: [topSong], initialIndex: 0),
-                    ),
-                  );
-                },
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 24),
-                  height: 180,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF6C63FF), Color(0xFFD81B60)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                    child: Text('Most Played',
+                        style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87)),
                   ),
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        right: -30,
-                        top: -30,
-                        child: Opacity(
-                          opacity: 0.15,
-                          child: QueryArtworkWidget(
-                            id: topSong.id,
-                            type: ArtworkType.AUDIO,
-                            artworkWidth: 220,
-                            artworkHeight: 220,
-                            nullArtworkWidget: const Icon(
-                                Icons.music_note_rounded,
-                                size: 200,
-                                color: Colors.white),
-                          ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ThemedPlayerScreen(songs: [topSong], initialIndex: 0),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 24),
+                      height: 180,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF6C63FF), Color(0xFFD81B60)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(30),
+                        child: Stack(
                           children: [
-                            Text(
-                              topSong.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
+                            Positioned(
+                              right: -30,
+                              top: -30,
+                              child: Opacity(
+                                opacity: 0.15,
+                                child: QueryArtworkWidget(
+                                  id: topSong.id,
+                                  type: ArtworkType.AUDIO,
+                                  artworkWidth: 220,
+                                  artworkHeight: 220,
+                                  nullArtworkWidget: const Icon(
+                                      Icons.music_note_rounded,
+                                      size: 200,
+                                      color: Colors.white),
+                                ),
+                              ),
                             ),
-                            Text(topSong.artist ?? 'Unknown Artist',
-                                style:
-                                    GoogleFonts.poppins(color: Colors.white70)),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(20)),
-                              child: Text('Listen Now',
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 12)),
+                            Padding(
+                              padding: const EdgeInsets.all(24.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    topSong.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 26,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                  Text(topSong.artist ?? 'Unknown Artist',
+                                      style:
+                                          GoogleFonts.poppins(color: Colors.white70)),
+                                  const Spacer(),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                    decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.2),
+                                        borderRadius: BorderRadius.circular(20)),
+                                    child: Text('Listen Now',
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 12)),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-          // Recently Played
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
-              child: Text('Recently Played',
-                  style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87)),
-            ),
-          ),
-
-          musicProvider.isLoading
-              ? const SliverToBoxAdapter(
-                  child: Center(child: CircularProgressIndicator()))
-              : SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: 120,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: musicProvider.songs.length > 10
-                          ? 10
-                          : musicProvider.songs.length,
-                      itemBuilder: (context, index) {
-                        final song = musicProvider.songs[index];
-                        final isPlaying = audioService.currentSong?.id == song.id;
-                        
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ThemedPlayerScreen(
-                                      songs: musicProvider.songs,
-                                      initialIndex: index)),
-                            );
-                          },
-                          child: Container(
-                            width: 80,
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            child: Column(
-                              children: [
-                                Container(
-                                  width: 70,
-                                  height: 70,
-                                  decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                            color: isPlaying 
-                                                ? theme.accentColor.withValues(alpha: 0.4)
-                                                : (isDark ? Colors.black45 : Colors.black12),
-                                            blurRadius: 10)
-                                      ]),
-                                  clipBehavior: Clip.antiAlias,
-                                  child: Stack(
-                                    children: [
-                                      QueryArtworkWidget(
-                                        id: song.id,
-                                        type: ArtworkType.AUDIO,
-                                        nullArtworkWidget: Container(
-                                            color: isDark
-                                                ? Colors.white
-                                                    .withValues(alpha: 0.05)
-                                                : Colors.white,
-                                            child: Icon(Icons.music_note,
-                                                color: isDark
-                                                    ? Colors.white24
-                                                    : Colors.black12)),
-                                      ),
-                                      if (isPlaying)
-                                        Positioned.fill(
-                                          child: Container(
-                                            color: Colors.black.withOpacity(0.3),
-                                            child: Icon(Icons.bar_chart_rounded, 
-                                                color: theme.accentColor, 
-                                                size: 24),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(song.title,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: GoogleFonts.poppins(
-                                        fontSize: 11,
-                                        fontWeight: isPlaying ? FontWeight.bold : FontWeight.normal,
-                                        color: isPlaying 
-                                            ? theme.accentColor 
-                                            : (isDark ? Colors.white54 : Colors.black54))),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
                     ),
                   ),
-                ),
+                ],
+              ),
+            ),
 
           // All Songs with Sort Header
           SliverToBoxAdapter(

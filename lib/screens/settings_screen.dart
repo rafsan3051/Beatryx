@@ -229,9 +229,7 @@ class SettingsScreen extends StatelessWidget {
                     trailing: isSelected ? Icon(Icons.check_circle, color: themeManager.accentColor) : null,
                     onTap: () {
                       uiManager.setUI(config);
-                      if (config.isDarkMode != themeManager.isDarkMode) {
-                        themeManager.toggleTheme();
-                      }
+                      // Removed auto theme toggle logic here to keep user dark mode preference
                       Navigator.pop(context);
                     },
                   );

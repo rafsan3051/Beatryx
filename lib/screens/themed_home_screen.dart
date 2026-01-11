@@ -149,7 +149,9 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
               Image.asset(imageAsset, width: 24, height: 24)
             else if (icon != null)
               Icon(icon,
-                  color: isDestructive ? Colors.redAccent : theme.accentColor),
+                  color: isDestructive ? Colors.redAccent : theme.accentColor)
+            else
+              const SizedBox(width: 24, height: 24),
             const SizedBox(width: 16),
             Text(
               title,
@@ -354,11 +356,11 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             if (playlistService.playlists.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
                 child: Text('No playlists created yet',
                     style: TextStyle(
-                        color: theme.textColor.withValues(alpha: 0.5))),
+                        color: Colors.white54)),
               )
             else
               Flexible(
@@ -497,7 +499,7 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
       case SwipeAction.delete:
         icon = Icons.delete_outline_rounded;
         label = 'Delete';
-        color = Colors.orangeAccent;
+        color = Colors.redAccent;
         break;
       default:
         return const SizedBox.shrink();
@@ -507,7 +509,7 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
       alignment: isRight ? Alignment.centerLeft : Alignment.centerRight,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -763,7 +765,7 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                                       },
                                       onLongPress: () =>
                                           _toggleSelection(song.id),
-                                      trailing: SizedBox.shrink(), // Added to remove trailing dots
+                                      trailing: const SizedBox.shrink(), // Corrected trailing dots removal
                                     ),
                                   );
 

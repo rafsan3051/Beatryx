@@ -164,10 +164,8 @@ class _MainScreenState extends State<MainScreen> {
                             height: 400,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: theme.isDarkMode
-                                  ? theme.accentColor.withValues(alpha: 0.08)
-                                  : const Color(0xFFFFC0CB)
-                                      .withValues(alpha: 0.2),
+                              color: theme.accentColor.withValues(
+                                  alpha: theme.isDarkMode ? 0.08 : 0.15),
                             ),
                           ),
                         ),
@@ -179,10 +177,8 @@ class _MainScreenState extends State<MainScreen> {
                             height: 500,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: theme.isDarkMode
-                                  ? theme.accentColor.withValues(alpha: 0.05)
-                                  : const Color(0xFFE6E6FA)
-                                      .withValues(alpha: 0.3),
+                              color: theme.accentColor.withValues(
+                                  alpha: theme.isDarkMode ? 0.05 : 0.1),
                             ),
                           ),
                         ),
@@ -246,9 +242,7 @@ class _MainScreenState extends State<MainScreen> {
                                         ? Colors.white10
                                         : Colors.black12,
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                        theme.isDarkMode
-                                            ? theme.accentColor
-                                            : const Color(0xFFD81B60)),
+                                        theme.accentColor),
                                     minHeight: 3,
                                   ),
                                 ),
@@ -350,10 +344,7 @@ class _MainScreenState extends State<MainScreen> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: (theme.isDarkMode
-                          ? theme.accentColor
-                          : const Color(0xFFD81B60))
-                      .withValues(alpha: 0.3),
+                  color: theme.accentColor.withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 )
@@ -367,17 +358,13 @@ class _MainScreenState extends State<MainScreen> {
                       type: ArtworkType.AUDIO,
                       artworkFit: BoxFit.cover,
                       nullArtworkWidget: Container(
-                        color: theme.isDarkMode
-                            ? theme.accentColor
-                            : const Color(0xFFD81B60),
+                        color: theme.accentColor,
                         child:
                             const Icon(Icons.music_note, color: Colors.white),
                       ),
                     )
                   : Container(
-                      color: theme.isDarkMode
-                          ? theme.accentColor
-                          : const Color(0xFFD81B60),
+                      color: theme.accentColor,
                       child: const Icon(Icons.music_note, color: Colors.white),
                     ),
             ),
@@ -404,11 +391,7 @@ class _MainScreenState extends State<MainScreen> {
       icon: Icon(
         icon,
         color: isSelected
-            ? (isAura
-                ? (theme.isDarkMode
-                    ? theme.accentColor
-                    : const Color(0xFFD81B60))
-                : theme.accentColor)
+            ? theme.accentColor
             : (isAura
                 ? (theme.isDarkMode ? Colors.white38 : Colors.black26)
                 : theme.textColor.withValues(alpha: 0.4)),
