@@ -75,7 +75,7 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen>
     showModalBottomSheet(
       context: context,
       backgroundColor: isDark
-          ? const Color(0xFF1E1E1E)
+          ? theme.surfaceColor
           : (isAura ? Colors.white : theme.backgroundColor),
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
@@ -158,7 +158,7 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen>
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          backgroundColor: isDark ? theme.surfaceColor : Colors.white,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
           title: Text('Set Sleep Timer',
@@ -717,15 +717,15 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen>
                         child: Container(
                           decoration: BoxDecoration(
                             color: (isDark
-                                    ? const Color(0xFF0F1219)
+                                    ? theme.surfaceColor
                                     : Colors.white)
-                                .withValues(alpha: isDark ? 0.95 : 0.8),
+                                .withValues(alpha: isDark ? 0.85 : 0.8),
                             borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(35)),
                             boxShadow: [
                               BoxShadow(
                                   color: Colors.black
-                                      .withValues(alpha: isDark ? 0.4 : 0.1),
+                                      .withValues(alpha: isDark ? 0.2 : 0.1),
                                   blurRadius: 20,
                                   spreadRadius: 5)
                             ],
@@ -737,23 +737,39 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen>
                                 child: Column(
                                   children: [
                                     const SizedBox(height: 12),
-                                    Container(
-                                        width: 40,
-                                        height: 4,
-                                        decoration: BoxDecoration(
-                                            color: isDark
-                                                ? Colors.white12
-                                                : Colors.black12,
-                                            borderRadius:
-                                                BorderRadius.circular(2))),
-                                    const SizedBox(height: 12),
-                                    Text(isAura ? 'Next' : 'Up Next',
-                                        style: GoogleFonts.poppins(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: isDark
-                                                ? Colors.white
-                                                : Colors.black87)),
+                                    if (isAura) ...[
+                                      Icon(
+                                        Icons.keyboard_arrow_up_rounded,
+                                        color: isDark ? Colors.white38 : Colors.black26,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text('Up Next',
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              color: isDark
+                                                  ? Colors.white38
+                                                  : Colors.black45)),
+                                    ] else ...[
+                                      Container(
+                                          width: 40,
+                                          height: 4,
+                                          decoration: BoxDecoration(
+                                              color: isDark
+                                                  ? Colors.white12
+                                                  : Colors.black12,
+                                              borderRadius:
+                                                  BorderRadius.circular(2))),
+                                      const SizedBox(height: 12),
+                                      Text('Up Next',
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : Colors.black87)),
+                                    ],
                                     const SizedBox(height: 12),
                                   ],
                                 ),
