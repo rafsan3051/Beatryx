@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.beatryx"
-        minSdk = flutter.minSdkVersion
+        minSdk = 31
         targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName

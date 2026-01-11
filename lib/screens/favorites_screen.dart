@@ -5,6 +5,7 @@ import '../services/music_provider.dart';
 import '../services/playlist_service.dart';
 import '../services/theme_manager.dart';
 import '../services/ui_manager.dart';
+import '../services/audio_service.dart';
 import 'themed_player_screen.dart';
 
 class FavoritesScreen extends StatelessWidget {
@@ -16,6 +17,7 @@ class FavoritesScreen extends StatelessWidget {
     final playlistService = Provider.of<PlaylistService>(context);
     final musicProvider = Provider.of<MusicProvider>(context);
     final uiManager = Provider.of<UIManager>(context);
+    final audioService = Provider.of<AudioPlayerService>(context);
     final isAura = uiManager.currentUI.isAura;
     final isDark = theme.isDarkMode;
     
@@ -68,60 +70,95 @@ class FavoritesScreen extends StatelessWidget {
               itemCount: favoriteSongs.length,
               itemBuilder: (context, index) {
                 final song = favoriteSongs[index];
-                return ListTile(
-                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: QueryArtworkWidget(
-                      id: song.id,
-                      type: ArtworkType.AUDIO,
-                      nullArtworkWidget: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: isAura ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)) : theme.surfaceColor,
+                final isPlaying = audioService.currentSong?.id == song.id;
+
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isPlaying 
+                        ? theme.accentColor.withValues(alpha: isAura ? 0.08 : 0.05) 
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                    leading: Stack(
+                      children: [
+                        ClipRRect(
                           borderRadius: BorderRadius.circular(12),
+                          child: QueryArtworkWidget(
+                            id: song.id,
+                            type: ArtworkType.AUDIO,
+                            nullArtworkWidget: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: isAura ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)) : theme.surfaceColor,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                Icons.music_note_rounded, 
+                                color: isAura ? (isDark ? Colors.white24 : Colors.black26) : theme.subtitleColor
+                              ),
+                            ),
+                          ),
                         ),
-                        child: Icon(
-                          Icons.music_note_rounded, 
-                          color: isAura ? (isDark ? Colors.white24 : Colors.black26) : theme.subtitleColor
-                        ),
+                        if (isPlaying)
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                Icons.bar_chart_rounded,
+                                color: theme.accentColor,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    title: Text(
+                      song.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: isPlaying 
+                            ? theme.accentColor 
+                            : (isAura ? (isDark ? Colors.white : Colors.black87) : theme.textColor), 
+                        fontWeight: isPlaying ? FontWeight.bold : FontWeight.w600
                       ),
                     ),
-                  ),
-                  title: Text(
-                    song.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: isAura ? (isDark ? Colors.white : Colors.black87) : theme.textColor, 
-                      fontWeight: FontWeight.w600
-                    ),
-                  ),
-                  subtitle: Text(
-                    song.artist ?? "Unknown Artist",
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: isAura ? (isDark ? Colors.white38 : Colors.black45) : theme.subtitleColor),
-                  ),
-                  trailing: IconButton(
-                    icon: Icon(
-                      Icons.favorite, 
-                      color: isAura ? theme.accentColor : Colors.red
-                    ),
-                    onPressed: () => playlistService.toggleFavorite(song.id.toString()),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ThemedPlayerScreen(
-                          songs: favoriteSongs,
-                          initialIndex: index,
-                        ),
+                    subtitle: Text(
+                      song.artist ?? "Unknown Artist",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: isPlaying 
+                            ? theme.accentColor.withValues(alpha: 0.7) 
+                            : (isAura ? (isDark ? Colors.white38 : Colors.black45) : theme.subtitleColor)
                       ),
-                    );
-                  },
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(
+                        Icons.favorite, 
+                        color: isAura ? theme.accentColor : Colors.red
+                      ),
+                      onPressed: () => playlistService.toggleFavorite(song.id.toString()),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ThemedPlayerScreen(
+                            songs: favoriteSongs,
+                            initialIndex: index,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             ),

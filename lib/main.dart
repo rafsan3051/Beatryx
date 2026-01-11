@@ -24,7 +24,7 @@ import 'package:on_audio_query/on_audio_query.dart';
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  
+
   await JustAudioBackground.init(
     androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
     androidNotificationChannelName: 'Audio playback',
@@ -35,7 +35,7 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
+
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
@@ -64,7 +64,7 @@ class MyApp extends StatelessWidget {
       child: Consumer2<ThemeManager, UIManager>(
         builder: (context, themeManager, uiManager, _) {
           final baseTheme = themeManager.toThemeData();
-          
+
           return MaterialApp(
             title: 'Beatryx',
             theme: baseTheme.copyWith(
@@ -130,7 +130,7 @@ class _MainScreenState extends State<MainScreen> {
     final theme = Provider.of<ThemeManager>(context);
     final uiManager = Provider.of<UIManager>(context);
     final isAura = uiManager.currentUI.isAura;
-    
+
     return Scaffold(
       extendBody: true,
       body: Stack(
@@ -145,48 +145,54 @@ class _MainScreenState extends State<MainScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    (isAura ? theme.accentColor : palette.dominantColor).withValues(alpha: 0.1),
+                    (isAura ? theme.accentColor : palette.dominantColor)
+                        .withValues(alpha: 0.1),
                     theme.backgroundColor,
-                    (isAura ? theme.accentColor : palette.dominantColor).withValues(alpha: 0.05),
+                    (isAura ? theme.accentColor : palette.dominantColor)
+                        .withValues(alpha: 0.05),
                   ],
                 ),
               ),
-              child: isAura ? Stack(
-                children: [
-                  Positioned(
-                    top: -150,
-                    right: -100,
-                    child: Container(
-                      width: 400,
-                      height: 400,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: theme.isDarkMode 
-                            ? theme.accentColor.withValues(alpha: 0.08)
-                            : const Color(0xFFFFC0CB).withValues(alpha: 0.2),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: -150,
-                    left: -100,
-                    child: Container(
-                      width: 500,
-                      height: 500,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: theme.isDarkMode
-                            ? theme.accentColor.withValues(alpha: 0.05)
-                            : const Color(0xFFE6E6FA).withValues(alpha: 0.3),
-                      ),
-                    ),
-                  ),
-                  BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-                    child: Container(color: Colors.transparent),
-                  ),
-                ],
-              ) : null,
+              child: isAura
+                  ? Stack(
+                      children: [
+                        Positioned(
+                          top: -150,
+                          right: -100,
+                          child: Container(
+                            width: 400,
+                            height: 400,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: theme.isDarkMode
+                                  ? theme.accentColor.withValues(alpha: 0.08)
+                                  : const Color(0xFFFFC0CB)
+                                      .withValues(alpha: 0.2),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: -150,
+                          left: -100,
+                          child: Container(
+                            width: 500,
+                            height: 500,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: theme.isDarkMode
+                                  ? theme.accentColor.withValues(alpha: 0.05)
+                                  : const Color(0xFFE6E6FA)
+                                      .withValues(alpha: 0.3),
+                            ),
+                          ),
+                        ),
+                        BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+                          child: Container(color: Colors.transparent),
+                        ),
+                      ],
+                    )
+                  : null,
             ),
           ),
 
@@ -205,56 +211,65 @@ class _MainScreenState extends State<MainScreen> {
               const SettingsScreen(),
             ],
           ),
-          
+
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Consumer<AudioPlayerService>(
-                  builder: (context, audio, _) {
-                    if (audio.currentSong != null) {
-                      if (isAura) {
-                        // Show seek bar above bottom bar instead of mini player for Aura
-                        return StreamBuilder<Duration>(
-                          stream: audio.positionStream,
-                          builder: (context, snapshot) {
-                            final position = snapshot.data ?? Duration.zero;
-                            final total = audio.audioPlayer.duration ?? Duration.zero;
-                            double progress = 0.0;
-                            if (total.inMilliseconds > 0) {
-                              progress = position.inMilliseconds / total.inMilliseconds;
-                            }
-                            return Container(
-                              margin: const EdgeInsets.fromLTRB(40, 0, 40, 8),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(2),
-                                child: LinearProgressIndicator(
-                                  value: progress.clamp(0.0, 1.0),
-                                  backgroundColor: theme.isDarkMode ? Colors.white10 : Colors.black12,
-                                  valueColor: AlwaysStoppedAnimation<Color>(theme.isDarkMode ? theme.accentColor : const Color(0xFFD81B60)),
-                                  minHeight: 3,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Consumer<AudioPlayerService>(
+                    builder: (context, audio, _) {
+                      if (audio.currentSong != null) {
+                        if (isAura) {
+                          // Show seek bar above bottom bar instead of mini player for Aura
+                          return StreamBuilder<Duration>(
+                            stream: audio.positionStream,
+                            builder: (context, snapshot) {
+                              final position = snapshot.data ?? Duration.zero;
+                              final total =
+                                  audio.audioPlayer.duration ?? Duration.zero;
+                              double progress = 0.0;
+                              if (total.inMilliseconds > 0) {
+                                progress = position.inMilliseconds /
+                                    total.inMilliseconds;
+                              }
+                              return Container(
+                                margin: const EdgeInsets.fromLTRB(40, 0, 40, 8),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(2),
+                                  child: LinearProgressIndicator(
+                                    value: progress.clamp(0.0, 1.0),
+                                    backgroundColor: theme.isDarkMode
+                                        ? Colors.white10
+                                        : Colors.black12,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        theme.isDarkMode
+                                            ? theme.accentColor
+                                            : const Color(0xFFD81B60)),
+                                    minHeight: 3,
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                        );
-                      } else if (audio.showMiniPlayer) {
-                        return const Padding(
-                          padding: EdgeInsets.only(bottom: 8),
-                          child: MiniPlayer(),
-                        );
+                              );
+                            },
+                          );
+                        } else if (audio.showMiniPlayer) {
+                          return const Padding(
+                            padding: EdgeInsets.only(bottom: 8),
+                            child: MiniPlayer(),
+                          );
+                        }
                       }
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
+                      return const SizedBox.shrink();
+                    },
+                  ),
 
-                // Bottom Navigation
-                _buildBottomNav(isAura, theme),
-              ],
+                  // Bottom Navigation
+                  _buildBottomNav(isAura, theme),
+                ],
+              ),
             ),
           ),
         ],
@@ -267,21 +282,26 @@ class _MainScreenState extends State<MainScreen> {
       margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       height: 70,
       decoration: BoxDecoration(
-        color: theme.isDarkMode 
+        color: theme.isDarkMode
             ? theme.surfaceColor.withValues(alpha: 0.8)
-            : (isAura ? Colors.white.withValues(alpha: 0.85) : Colors.white.withValues(alpha: 0.08)),
+            : (isAura
+                ? Colors.white.withValues(alpha: 0.85)
+                : Colors.white.withValues(alpha: 0.08)),
         borderRadius: BorderRadius.circular(35),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: theme.isDarkMode ? 0.4 : (isAura ? 0.05 : 0.2)),
+            color: Colors.black.withValues(
+                alpha: theme.isDarkMode ? 0.4 : (isAura ? 0.05 : 0.2)),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
         ],
         border: Border.all(
-          color: theme.isDarkMode 
+          color: theme.isDarkMode
               ? Colors.white.withValues(alpha: 0.05)
-              : (isAura ? Colors.white.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.1)),
+              : (isAura
+                  ? Colors.white.withValues(alpha: 0.5)
+                  : Colors.white.withValues(alpha: 0.1)),
         ),
       ),
       child: ClipRRect(
@@ -330,7 +350,10 @@ class _MainScreenState extends State<MainScreen> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: (theme.isDarkMode ? theme.accentColor : const Color(0xFFD81B60)).withValues(alpha: 0.3),
+                  color: (theme.isDarkMode
+                          ? theme.accentColor
+                          : const Color(0xFFD81B60))
+                      .withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 )
@@ -344,12 +367,17 @@ class _MainScreenState extends State<MainScreen> {
                       type: ArtworkType.AUDIO,
                       artworkFit: BoxFit.cover,
                       nullArtworkWidget: Container(
-                        color: theme.isDarkMode ? theme.accentColor : const Color(0xFFD81B60),
-                        child: const Icon(Icons.music_note, color: Colors.white),
+                        color: theme.isDarkMode
+                            ? theme.accentColor
+                            : const Color(0xFFD81B60),
+                        child:
+                            const Icon(Icons.music_note, color: Colors.white),
                       ),
                     )
                   : Container(
-                      color: theme.isDarkMode ? theme.accentColor : const Color(0xFFD81B60),
+                      color: theme.isDarkMode
+                          ? theme.accentColor
+                          : const Color(0xFFD81B60),
                       child: const Icon(Icons.music_note, color: Colors.white),
                     ),
             ),
@@ -364,7 +392,7 @@ class _MainScreenState extends State<MainScreen> {
     final theme = Provider.of<ThemeManager>(context);
     final uiManager = Provider.of<UIManager>(context);
     final isAura = uiManager.currentUI.isAura;
-    
+
     return IconButton(
       onPressed: () {
         _pageController.animateToPage(
@@ -375,9 +403,15 @@ class _MainScreenState extends State<MainScreen> {
       },
       icon: Icon(
         icon,
-        color: isSelected 
-            ? (isAura ? (theme.isDarkMode ? theme.accentColor : const Color(0xFFD81B60)) : theme.accentColor) 
-            : (isAura ? (theme.isDarkMode ? Colors.white38 : Colors.black26) : theme.textColor.withValues(alpha: 0.4)),
+        color: isSelected
+            ? (isAura
+                ? (theme.isDarkMode
+                    ? theme.accentColor
+                    : const Color(0xFFD81B60))
+                : theme.accentColor)
+            : (isAura
+                ? (theme.isDarkMode ? Colors.white38 : Colors.black26)
+                : theme.textColor.withValues(alpha: 0.4)),
         size: 26,
       ),
     );

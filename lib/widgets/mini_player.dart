@@ -21,6 +21,10 @@ class MiniPlayer extends StatelessWidget {
             if (details.primaryDelta! < -10) {
               _openPlayer(context, audio);
             } else if (details.primaryDelta! > 10) {
+              // Pause playback when miniplayer is dismissed via swipe down
+              if (audio.isPlaying) {
+                audio.pause();
+              }
               audio.setShowMiniPlayer(false);
             }
           },

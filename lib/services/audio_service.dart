@@ -12,7 +12,7 @@ class AudioPlayerService extends ChangeNotifier {
   bool _isProcessing = false;
 
   AudioPlayer get audioPlayer => _audioPlayer;
-  
+
   SongModel? get currentSong {
     final index = _audioPlayer.currentIndex;
     if (index != null && index >= 0 && index < _playlist.length) {
@@ -37,10 +37,10 @@ class AudioPlayerService extends ChangeNotifier {
   Future<void> playPlaylist(List<SongModel> songs, int initialIndex) async {
     if (_isProcessing) return;
     _isProcessing = true;
-    
+
     try {
       _playlist = songs;
-      
+
       final audioSources = songs.map((song) {
         return AudioSource.uri(
           Uri.parse(song.uri!),
@@ -54,13 +54,13 @@ class AudioPlayerService extends ChangeNotifier {
         );
       }).toList();
 
-      // ignore: deprecated_member_use
+      // ignore_for_file: deprecated_member_use
       await _audioPlayer.setAudioSource(
         ConcatenatingAudioSource(children: audioSources),
         initialIndex: initialIndex,
         initialPosition: Duration.zero,
       );
-      
+
       _audioPlayer.play();
       _showMiniPlayer = true; // Auto-show miniplayer when music starts
       notifyListeners();
