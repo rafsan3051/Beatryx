@@ -85,6 +85,7 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
                   icon: Icons.person_outline_rounded,
                   title: 'Set Profile Manually',
                   isDark: isDark,
+                  theme: theme,
                   onTap: () {
                     Navigator.pop(context);
                     _showManualProfileDialog(
@@ -96,6 +97,7 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
                   icon: Icons.login_rounded,
                   title: 'Sign in with Google',
                   isDark: isDark,
+                  theme: theme,
                   onTap: () {
                     Navigator.pop(context);
                     userProvider.signInWithGoogle();
@@ -120,7 +122,8 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
       {required IconData icon,
       required String title,
       required VoidCallback onTap,
-      required bool isDark}) {
+      required bool isDark,
+      required ThemeManager theme}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -134,12 +137,14 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
         ),
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xFFD81B60)),
+            Icon(icon, color: theme.accentColor),
             const SizedBox(width: 16),
-            Text(title,
-                style: TextStyle(
-                    color: isDark ? Colors.white70 : Colors.black87,
-                    fontWeight: FontWeight.w500)),
+            Expanded(
+              child: Text(title,
+                  style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.black87,
+                      fontWeight: FontWeight.w500)),
+            ),
           ],
         ),
       ),
@@ -177,8 +182,8 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
                           : null,
                   child: user.photoUrl == null ||
                           !File(user.photoUrl!).existsSync()
-                      ? const Icon(Icons.add_a_photo_rounded,
-                          color: Color(0xFFD81B60))
+                      ? Icon(Icons.add_a_photo_rounded,
+                          color: theme.accentColor)
                       : null,
                 ),
               ),
@@ -277,11 +282,11 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
       title: Text(title,
           style: TextStyle(
               color: isSelected
-                  ? const Color(0xFFD81B60)
+                  ? Provider.of<ThemeManager>(context, listen: false).accentColor
                   : (isDark ? Colors.white70 : Colors.black87),
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
       trailing: isSelected
-          ? const Icon(Icons.check_circle, color: Color(0xFFD81B60))
+          ? Icon(Icons.check_circle, color: Provider.of<ThemeManager>(context, listen: false).accentColor)
           : null,
       onTap: () {
         setState(() => _currentSortOrder = order);
@@ -339,8 +344,8 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
                   itemBuilder: (context, index) {
                     final playlist = playlistService.playlists[index];
                     return ListTile(
-                      leading: const Icon(Icons.playlist_add,
-                          color: Color(0xFFD81B60)),
+                      leading: Icon(Icons.playlist_add,
+                          color: Provider.of<ThemeManager>(context, listen: false).accentColor),
                       title: Text(playlist.name,
                           style: const TextStyle(color: Colors.white)),
                       onTap: () {
@@ -446,18 +451,19 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
     IconData icon;
     String label;
     Color color;
+    final theme = Provider.of<ThemeManager>(context, listen: false);
 
     switch (action) {
       case SwipeAction.favorite:
         final isFav = playlistService.isFavorite(song.id.toString());
         icon = isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded;
         label = isFav ? 'Remove' : 'Favorite';
-        color = const Color(0xFFD81B60);
+        color = theme.accentColor;
         break;
       case SwipeAction.playlist:
         icon = Icons.playlist_add_rounded;
         label = 'Playlist';
-        color = const Color(0xFF6C63FF);
+        color = theme.accentColor;
         break;
       case SwipeAction.delete:
         icon = Icons.delete_outline_rounded;
@@ -628,8 +634,8 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
                       height: 180,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(30),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF6C63FF), Color(0xFFD81B60)],
+                        gradient: LinearGradient(
+                          colors: [theme.accentColor.withValues(alpha: 0.8), theme.accentColor],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -712,8 +718,8 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
                           color: isDark ? Colors.white : Colors.black87),
                   ),
                   IconButton(
-                      icon: const Icon(Icons.sort_rounded,
-                          color: Color(0xFFD81B60)),
+                      icon: Icon(Icons.sort_rounded,
+                          color: theme.accentColor),
                       onPressed: () => _showSortOptions(isDark)),
                 ],
               ),

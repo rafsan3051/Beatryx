@@ -165,7 +165,7 @@ class SettingsScreen extends StatelessWidget {
           _SettingsTile(
             icon: Icons.info_outline_rounded,
             title: 'Version',
-            subtitle: '2.0 (Beatryx)',
+            subtitle: '2.5 (Beatryx)',
             themeManager: themeManager,
             isAura: isAura,
             isDark: isDark,

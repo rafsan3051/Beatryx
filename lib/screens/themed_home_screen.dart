@@ -91,7 +91,7 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                 ),
                 const SizedBox(height: 12),
                 _buildFloatingOption(
-                  imageAsset: 'assets/icons/google_logo.png',
+                  icon: Icons.login_rounded,
                   title: 'Sign in with Google',
                   onTap: () {
                     Navigator.pop(context);
@@ -146,18 +146,30 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
         child: Row(
           children: [
             if (imageAsset != null)
-              Image.asset(imageAsset, width: 24, height: 24)
+              Image.asset(
+                imageAsset, 
+                width: 24, 
+                height: 24,
+                errorBuilder: (context, error, stackTrace) => Icon(
+                  Icons.image_not_supported_rounded,
+                  color: theme.subtitleColor,
+                  size: 24,
+                ),
+              )
             else if (icon != null)
               Icon(icon,
                   color: isDestructive ? Colors.redAccent : theme.accentColor)
             else
               const SizedBox(width: 24, height: 24),
             const SizedBox(width: 16),
-            Text(
-              title,
-              style: TextStyle(
-                color: isDestructive ? Colors.redAccent : theme.textColor,
-                fontWeight: FontWeight.w500,
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  color: isDestructive ? Colors.redAccent : theme.textColor,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
