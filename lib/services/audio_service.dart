@@ -8,7 +8,7 @@ class AudioPlayerService extends ChangeNotifier {
   final AudioPlayer _audioPlayer = AudioPlayer();
   List<SongModel> _playlist = [];
   bool _autoplayNext = true;
-  bool _showMiniPlayer = true;
+  bool _showMiniPlayer = false; // Initially false, shown when song starts
   bool _isProcessing = false;
 
   AudioPlayer get audioPlayer => _audioPlayer;
@@ -61,6 +61,7 @@ class AudioPlayerService extends ChangeNotifier {
       );
       
       _audioPlayer.play();
+      _showMiniPlayer = true; // Auto-show miniplayer when music starts
       notifyListeners();
     } catch (e) {
       debugPrint("Error loading playlist: $e");
@@ -92,6 +93,12 @@ class AudioPlayerService extends ChangeNotifier {
 
   void stop() {
     _audioPlayer.stop();
+    _showMiniPlayer = false;
+    notifyListeners();
+  }
+
+  void pause() {
+    _audioPlayer.pause();
     notifyListeners();
   }
 
@@ -126,7 +133,6 @@ class AudioPlayerService extends ChangeNotifier {
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     _autoplayNext = prefs.getBool('autoplayNext') ?? true;
-    _showMiniPlayer = prefs.getBool('showMiniPlayer') ?? true;
     notifyListeners();
   }
 
@@ -137,10 +143,8 @@ class AudioPlayerService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setShowMiniPlayer(bool value) async {
+  void setShowMiniPlayer(bool value) {
     _showMiniPlayer = value;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('showMiniPlayer', value);
     notifyListeners();
   }
 }

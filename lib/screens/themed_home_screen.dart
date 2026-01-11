@@ -7,6 +7,7 @@ import '../services/theme_manager.dart';
 import '../services/user_provider.dart';
 import '../services/playlist_service.dart';
 import '../services/ui_manager.dart';
+import '../services/audio_service.dart';
 import 'themed_player_screen.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -301,11 +302,9 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
         playlistService.toggleFavorite(song.id.toString());
         break;
       case SwipeAction.playlist:
-        // TODO: Show playlist picker
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Add to Playlist feature coming soon!')));
         break;
       case SwipeAction.delete:
-        // Handle delete if needed
         break;
       case SwipeAction.none:
         break;
@@ -340,7 +339,7 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
 
     return Container(
       alignment: isRight ? Alignment.centerLeft : Alignment.centerRight,
-      padding: EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(16),
@@ -364,6 +363,7 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
     final userProvider = Provider.of<UserProvider>(context);
     final playlistService = Provider.of<PlaylistService>(context);
     final uiManager = Provider.of<UIManager>(context);
+    final audioService = Provider.of<AudioPlayerService>(context);
 
     final sortedSongs = _getSortedSongs(musicProvider.songs);
 
@@ -382,7 +382,6 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 20),
-                        // Header
                         if (!_isSelectionMode)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -415,7 +414,6 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                           ],
                         ) else const SizedBox(height: 44),
                         const SizedBox(height: 28),
-                        // Search Bar
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           decoration: BoxDecoration(
@@ -434,7 +432,6 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 32),
-                        // Sorting and Header
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -465,10 +462,13 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                             (context, index) {
                               final song = sortedSongs[index];
                               final isSelected = _selectedSongIds.contains(song.id);
+                              final isPlaying = audioService.currentSong?.id == song.id;
                               
                               Widget tileContent = Container(
                                 decoration: BoxDecoration(
-                                  color: isSelected ? theme.accentColor.withValues(alpha: 0.1) : Colors.transparent,
+                                  color: isSelected 
+                                      ? theme.accentColor.withValues(alpha: 0.1) 
+                                      : (isPlaying ? theme.accentColor.withValues(alpha: 0.05) : Colors.transparent),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: ListTile(
@@ -498,19 +498,35 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                                           child: const Icon(Icons.check, color: Colors.white, size: 20),
                                         ),
                                       ),
+                                      if (isPlaying && !isSelected)
+                                      Positioned.fill(
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withValues(alpha: 0.3),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Icon(Icons.bar_chart_rounded, color: theme.accentColor, size: 24),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   title: Text(
                                     song.title,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(color: theme.textColor, fontWeight: FontWeight.w600),
+                                    style: TextStyle(
+                                      color: isPlaying ? theme.accentColor : theme.textColor, 
+                                      fontWeight: isPlaying ? FontWeight.bold : FontWeight.w600
+                                    ),
                                   ),
                                   subtitle: Text(
                                     song.artist ?? 'Unknown Artist',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(color: theme.subtitleColor, fontSize: 12),
+                                    style: TextStyle(
+                                      color: isPlaying ? theme.accentColor.withValues(alpha: 0.7) : theme.subtitleColor, 
+                                      fontSize: 12
+                                    ),
                                   ),
                                   onTap: () {
                                     if (_isSelectionMode) {
@@ -531,7 +547,6 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                                 ),
                               );
 
-                              // Only apply Dismissible if swipe is enabled in UIManager
                               if (uiManager.swipeEnabled && !_isSelectionMode) {
                                 tileContent = Dismissible(
                                   key: Key('song_swipe_${song.id}'),
@@ -543,7 +558,7 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                                         ? uiManager.leftToRightAction 
                                         : uiManager.rightToLeftAction;
                                     _handleSwipeAction(song, action, playlistService);
-                                    return false; // Prevents the tile from disappearing
+                                    return false; 
                                   },
                                   child: tileContent,
                                 );
@@ -572,7 +587,6 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
               ],
             ),
             
-            // Selection Mode Overlay
             if (_isSelectionMode)
             Positioned(
               top: 0,
@@ -600,7 +614,6 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
                     IconButton(
                       icon: Icon(Icons.playlist_add, color: theme.accentColor),
                       onPressed: () {
-                        // TODO: Implement add selected to playlist
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Adding ${_selectedSongIds.length} songs to playlist...'))
                         );

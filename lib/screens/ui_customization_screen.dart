@@ -88,15 +88,9 @@ class UICustomizationScreen extends StatelessWidget {
                                       visualDensity: VisualDensity.compact,
                                     ),
                                     const SizedBox(width: 8),
-                                    if (ui.useGradientBackground)
+                                    if (ui.isAura)
                                       Chip(
-                                        label: const Text('Gradient',
-                                            style: TextStyle(fontSize: 10)),
-                                        visualDensity: VisualDensity.compact,
-                                      ),
-                                    if (ui.useNeumorphic)
-                                      Chip(
-                                        label: const Text('Neumorphic',
+                                        label: const Text('Aura',
                                             style: TextStyle(fontSize: 10)),
                                         visualDensity: VisualDensity.compact,
                                       ),

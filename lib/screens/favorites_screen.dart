@@ -4,6 +4,7 @@ import 'package:on_audio_query/on_audio_query.dart';
 import '../services/music_provider.dart';
 import '../services/playlist_service.dart';
 import '../services/theme_manager.dart';
+import '../services/ui_manager.dart';
 import 'themed_player_screen.dart';
 
 class FavoritesScreen extends StatelessWidget {
@@ -14,22 +15,27 @@ class FavoritesScreen extends StatelessWidget {
     final theme = Provider.of<ThemeManager>(context);
     final playlistService = Provider.of<PlaylistService>(context);
     final musicProvider = Provider.of<MusicProvider>(context);
+    final uiManager = Provider.of<UIManager>(context);
+    final isAura = uiManager.currentUI.isAura;
     
-    // Filter musicProvider songs to get only favorites
     final favoriteSongs = musicProvider.songs.where((song) => 
       playlistService.isFavorite(song.id.toString())
     ).toList();
 
     return Scaffold(
-      backgroundColor: theme.backgroundColor,
+      backgroundColor: isAura ? Colors.transparent : theme.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        leading: isAura ? null : IconButton(
+          icon: Icon(Icons.arrow_back, color: theme.textColor),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
           'Favourites',
           style: TextStyle(
-            color: theme.textColor,
+            color: isAura ? Colors.black87 : theme.textColor,
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
@@ -40,11 +46,18 @@ class FavoritesScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.favorite_border_rounded, size: 64, color: theme.subtitleColor),
+                  Icon(
+                    Icons.favorite_border_rounded, 
+                    size: 64, 
+                    color: isAura ? Colors.black12 : theme.subtitleColor
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'No favorites yet',
-                    style: TextStyle(color: theme.textColor, fontSize: 18),
+                    style: TextStyle(
+                      color: isAura ? Colors.black45 : theme.textColor, 
+                      fontSize: 18
+                    ),
                   ),
                 ],
               ),
@@ -56,33 +69,45 @@ class FavoritesScreen extends StatelessWidget {
                 final song = favoriteSongs[index];
                 return ListTile(
                   contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                  leading: QueryArtworkWidget(
-                    id: song.id,
-                    type: ArtworkType.AUDIO,
-                    nullArtworkWidget: Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: theme.surfaceColor,
-                        borderRadius: BorderRadius.circular(12),
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: QueryArtworkWidget(
+                      id: song.id,
+                      type: ArtworkType.AUDIO,
+                      nullArtworkWidget: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: isAura ? Colors.black.withOpacity(0.05) : theme.surfaceColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.music_note_rounded, 
+                          color: isAura ? Colors.black26 : theme.subtitleColor
+                        ),
                       ),
-                      child: Icon(Icons.music_note_rounded, color: theme.subtitleColor),
                     ),
                   ),
                   title: Text(
                     song.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: theme.textColor, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: isAura ? Colors.black87 : theme.textColor, 
+                      fontWeight: FontWeight.w600
+                    ),
                   ),
                   subtitle: Text(
                     song.artist ?? "Unknown Artist",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: theme.subtitleColor),
+                    style: TextStyle(color: isAura ? Colors.black45 : theme.subtitleColor),
                   ),
                   trailing: IconButton(
-                    icon: const Icon(Icons.favorite, color: Colors.red),
+                    icon: Icon(
+                      Icons.favorite, 
+                      color: isAura ? const Color(0xFFD81B60) : Colors.red
+                    ),
                     onPressed: () => playlistService.toggleFavorite(song.id.toString()),
                   ),
                   onTap: () {

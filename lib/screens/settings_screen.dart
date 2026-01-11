@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/theme_manager.dart';
 import '../services/ui_manager.dart';
+import '../models/ui_config.dart';
 import 'look_feel_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -12,20 +13,21 @@ class SettingsScreen extends StatelessWidget {
     final themeManager = Provider.of<ThemeManager>(context);
     final uiManager = Provider.of<UIManager>(context);
     final isDark = themeManager.isDarkMode;
+    final isAura = uiManager.currentUI.isAura;
 
     return Scaffold(
-      backgroundColor: themeManager.backgroundColor,
+      backgroundColor: isAura ? Colors.transparent : themeManager.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
+        leading: isAura ? null : IconButton(
           icon: Icon(Icons.arrow_back_rounded, color: themeManager.textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Settings',
           style: TextStyle(
-            color: themeManager.textColor,
+            color: isAura ? Colors.black87 : themeManager.textColor,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -38,14 +40,14 @@ class SettingsScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: themeManager.surfaceColor,
+              color: isAura ? Colors.black.withOpacity(0.05) : themeManager.surfaceColor,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               children: [
                 Icon(
                   isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-                  color: themeManager.accentColor,
+                  color: isAura ? const Color(0xFFD81B60) : themeManager.accentColor,
                   size: 28,
                 ),
                 const SizedBox(width: 16),
@@ -56,7 +58,7 @@ class SettingsScreen extends StatelessWidget {
                       Text(
                         'Dark Mode',
                         style: TextStyle(
-                          color: themeManager.textColor,
+                          color: isAura ? Colors.black87 : themeManager.textColor,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -64,7 +66,7 @@ class SettingsScreen extends StatelessWidget {
                       Text(
                         isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
                         style: TextStyle(
-                          color: themeManager.subtitleColor,
+                          color: isAura ? Colors.black45 : themeManager.subtitleColor,
                           fontSize: 13,
                         ),
                       ),
@@ -73,9 +75,8 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 Switch(
                   value: isDark,
-                  activeTrackColor:
-                      themeManager.accentColor.withValues(alpha: 0.5),
-                  activeThumbColor: themeManager.accentColor,
+                  activeTrackColor: (isAura ? const Color(0xFFD81B60) : themeManager.accentColor).withValues(alpha: 0.5),
+                  activeThumbColor: isAura ? const Color(0xFFD81B60) : themeManager.accentColor,
                   onChanged: (value) {
                     themeManager.toggleTheme();
                   },
@@ -83,13 +84,26 @@ class SettingsScreen extends StatelessWidget {
               ],
             ),
           ),
+          
           const SizedBox(height: 24),
-          _SettingsSectionHeader(title: 'General', themeManager: themeManager),
+          _SettingsSectionHeader(title: 'Customization', themeManager: themeManager, isAura: isAura),
+          
+          // NEW SECTION: CHANGE UI
+          _SettingsTile(
+            icon: Icons.dashboard_customize_outlined,
+            title: 'Change UI',
+            subtitle: 'Choose your preferred layout style',
+            themeManager: themeManager,
+            isAura: isAura,
+            onTap: () => _showUIPicker(context, uiManager, themeManager),
+          ),
+
           _SettingsTile(
             icon: Icons.palette_outlined,
             title: 'Look & Feel',
             subtitle: 'Themes, Colors, Animations',
             themeManager: themeManager,
+            isAura: isAura,
             onTap: () {
               Navigator.push(
                 context,
@@ -99,20 +113,19 @@ class SettingsScreen extends StatelessWidget {
           ),
 
           const SizedBox(height: 24),
-          _SettingsSectionHeader(title: 'Gestures', themeManager: themeManager),
+          _SettingsSectionHeader(title: 'Gestures', themeManager: themeManager, isAura: isAura),
           // Swipe Toggle
           Container(
             margin: const EdgeInsets.only(bottom: 12),
             child: ListTile(
               title: Text('Enable Swipe Gestures',
-                  style: TextStyle(color: themeManager.textColor)),
+                  style: TextStyle(color: isAura ? Colors.black87 : themeManager.textColor)),
               subtitle: Text('Swipe songs to trigger actions',
-                  style: TextStyle(color: themeManager.subtitleColor)),
+                  style: TextStyle(color: isAura ? Colors.black45 : themeManager.subtitleColor)),
               trailing: Switch(
                 value: uiManager.swipeEnabled,
-                activeTrackColor:
-                    themeManager.accentColor.withValues(alpha: 0.5),
-                activeThumbColor: themeManager.accentColor,
+                activeTrackColor: (isAura ? const Color(0xFFD81B60) : themeManager.accentColor).withValues(alpha: 0.5),
+                activeThumbColor: isAura ? const Color(0xFFD81B60) : themeManager.accentColor,
                 onChanged: (value) => uiManager.setSwipeEnabled(value),
               ),
             ),
@@ -123,38 +136,110 @@ class SettingsScreen extends StatelessWidget {
               currentAction: uiManager.leftToRightAction,
               onChanged: (action) => uiManager.setLeftToRightAction(action),
               themeManager: themeManager,
+              isAura: isAura,
             ),
             _SwipeActionTile(
               title: 'Swipe Left',
               currentAction: uiManager.rightToLeftAction,
               onChanged: (action) => uiManager.setRightToLeftAction(action),
               themeManager: themeManager,
+              isAura: isAura,
             ),
           ],
 
           const SizedBox(height: 24),
-          _SettingsSectionHeader(title: 'Audio', themeManager: themeManager),
+          _SettingsSectionHeader(title: 'Audio', themeManager: themeManager, isAura: isAura),
           _SettingsTile(
             icon: Icons.volume_up_outlined,
             title: 'Audio Settings',
             subtitle: 'Equalizer and quality',
             themeManager: themeManager,
+            isAura: isAura,
             onTap: () {
               // Add navigation to AudioSettingsScreen when implemented
             },
           ),
           const SizedBox(height: 24),
-          _SettingsSectionHeader(title: 'About', themeManager: themeManager),
+          _SettingsSectionHeader(title: 'About', themeManager: themeManager, isAura: isAura),
           _SettingsTile(
             icon: Icons.info_outline_rounded,
             title: 'Version',
             subtitle: '1.1 (Beatryx)',
             themeManager: themeManager,
+            isAura: isAura,
             onTap: null,
           ),
-          // Added space at bottom to ensure items aren't hidden by navigation bar
           const SizedBox(height: 120),
         ],
+      ),
+    );
+  }
+
+  void _showUIPicker(BuildContext context, UIManager uiManager, ThemeManager themeManager) {
+    final isAura = uiManager.currentUI.isAura;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isAura ? Colors.white : themeManager.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Select UI Style',
+              style: TextStyle(
+                color: isAura ? Colors.black87 : themeManager.textColor,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: UIConfig.allPresets.length,
+                itemBuilder: (context, index) {
+                  final config = UIConfig.allPresets[index];
+                  final isSelected = uiManager.currentUI.preset == config.preset;
+                  
+                  return ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: config.isDarkMode ? Colors.black : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        config.isGlassmorphic ? Icons.blur_on : Icons.crop_free,
+                        color: isAura ? const Color(0xFFD81B60) : themeManager.accentColor,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      config.name,
+                      style: TextStyle(
+                        color: isAura ? Colors.black87 : themeManager.textColor,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                    trailing: isSelected ? Icon(Icons.check_circle, color: isAura ? const Color(0xFFD81B60) : themeManager.accentColor) : null,
+                    onTap: () {
+                      uiManager.setUI(config);
+                      // Also update dark mode based on preset
+                      if (config.isDarkMode != themeManager.isDarkMode) {
+                        themeManager.toggleTheme();
+                      }
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -165,22 +250,24 @@ class _SwipeActionTile extends StatelessWidget {
   final SwipeAction currentAction;
   final Function(SwipeAction) onChanged;
   final ThemeManager themeManager;
+  final bool isAura;
 
   const _SwipeActionTile({
     required this.title,
     required this.currentAction,
     required this.onChanged,
     required this.themeManager,
+    required this.isAura,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(title, style: TextStyle(color: themeManager.textColor)),
+      title: Text(title, style: TextStyle(color: isAura ? Colors.black87 : themeManager.textColor)),
       subtitle: Text(_actionToString(currentAction),
-          style: TextStyle(color: themeManager.subtitleColor)),
+          style: TextStyle(color: isAura ? Colors.black45 : themeManager.subtitleColor)),
       trailing:
-          Icon(Icons.chevron_right_rounded, color: themeManager.subtitleColor),
+          Icon(Icons.chevron_right_rounded, color: isAura ? Colors.black26 : themeManager.subtitleColor),
       onTap: () => _showActionPicker(context),
     );
   }
@@ -201,7 +288,7 @@ class _SwipeActionTile extends StatelessWidget {
   void _showActionPicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: themeManager.surfaceColor,
+      backgroundColor: isAura ? Colors.white : themeManager.surfaceColor,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
       builder: (context) => Padding(
@@ -209,7 +296,7 @@ class _SwipeActionTile extends StatelessWidget {
         child: Theme(
           data: Theme.of(context).copyWith(
             radioTheme: RadioThemeData(
-              fillColor: WidgetStateProperty.all(themeManager.accentColor),
+              fillColor: WidgetStateProperty.all(isAura ? const Color(0xFFD81B60) : themeManager.accentColor),
             ),
           ),
           child: Column(
@@ -223,16 +310,16 @@ class _SwipeActionTile extends StatelessWidget {
                   },
                   child: ListTile(
                     title: Text(_actionToString(action),
-                        style: const TextStyle(color: Colors.white)),
+                        style: TextStyle(color: isAura ? Colors.black87 : Colors.white)),
                     leading: SizedBox(
                       width: 24,
                       height: 24,
                       child: Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: themeManager.accentColor),
+                          border: Border.all(color: isAura ? const Color(0xFFD81B60) : themeManager.accentColor),
                           color: action == currentAction
-                              ? themeManager.accentColor
+                              ? (isAura ? const Color(0xFFD81B60) : themeManager.accentColor)
                               : null,
                         ),
                       ),
@@ -250,9 +337,10 @@ class _SwipeActionTile extends StatelessWidget {
 class _SettingsSectionHeader extends StatelessWidget {
   final String title;
   final ThemeManager themeManager;
+  final bool isAura;
 
   const _SettingsSectionHeader(
-      {required this.title, required this.themeManager});
+      {required this.title, required this.themeManager, required this.isAura});
 
   @override
   Widget build(BuildContext context) {
@@ -261,7 +349,7 @@ class _SettingsSectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: TextStyle(
-          color: themeManager.accentColor,
+          color: isAura ? const Color(0xFFD81B60) : themeManager.accentColor,
           fontSize: 14,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,
@@ -277,6 +365,7 @@ class _SettingsTile extends StatelessWidget {
   final String subtitle;
   final ThemeManager themeManager;
   final VoidCallback? onTap;
+  final bool isAura;
 
   const _SettingsTile({
     required this.icon,
@@ -284,6 +373,7 @@ class _SettingsTile extends StatelessWidget {
     required this.subtitle,
     required this.themeManager,
     this.onTap,
+    required this.isAura,
   });
 
   @override
@@ -301,7 +391,7 @@ class _SettingsTile extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  color: themeManager.textColor.withValues(alpha: 0.7),
+                  color: (isAura ? Colors.black87 : themeManager.textColor).withValues(alpha: 0.7),
                   size: 24,
                 ),
                 const SizedBox(width: 16),
@@ -312,7 +402,7 @@ class _SettingsTile extends StatelessWidget {
                       Text(
                         title,
                         style: TextStyle(
-                          color: themeManager.textColor,
+                          color: isAura ? Colors.black87 : themeManager.textColor,
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),
@@ -321,7 +411,7 @@ class _SettingsTile extends StatelessWidget {
                       Text(
                         subtitle,
                         style: TextStyle(
-                          color: themeManager.subtitleColor,
+                          color: isAura ? Colors.black45 : themeManager.subtitleColor,
                           fontSize: 12,
                         ),
                       ),
@@ -331,7 +421,7 @@ class _SettingsTile extends StatelessWidget {
                 if (onTap != null)
                   Icon(
                     Icons.chevron_right_rounded,
-                    color: themeManager.textColor.withValues(alpha: 0.3),
+                    color: (isAura ? Colors.black87 : themeManager.textColor).withValues(alpha: 0.3),
                   ),
               ],
             ),

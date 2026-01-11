@@ -10,7 +10,7 @@ enum SwipeAction {
 }
 
 class UIManager extends ChangeNotifier {
-  UIConfig _currentUI = UIConfig.vibrantDark;
+  UIConfig _currentUI = UIConfig.harmoniq;
   bool _darkMode = true;
   bool _showLyrics = false;
   bool _showVisualizer = true;
@@ -43,12 +43,12 @@ class UIManager extends ChangeNotifier {
 
   Future<void> _loadUI() async {
     final prefs = await SharedPreferences.getInstance();
-    final uiName = prefs.getString('ui_preset') ?? 'Vibrant Dark';
+    final uiName = prefs.getString('ui_preset') ?? 'Harmoniq';
     final isDark = prefs.getBool('dark_mode') ?? true;
 
     _currentUI = UIConfig.allPresets.firstWhere(
       (ui) => ui.name == uiName,
-      orElse: () => UIConfig.vibrantDark,
+      orElse: () => UIConfig.harmoniq,
     );
     _darkMode = isDark;
 

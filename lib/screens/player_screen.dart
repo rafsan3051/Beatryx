@@ -4,7 +4,6 @@ import 'package:on_audio_query/on_audio_query.dart';
 import '../services/audio_service.dart';
 import '../services/theme_manager.dart';
 import '../services/ui_manager.dart';
-import '../models/ui_config.dart';
 
 class PlayerScreen extends StatefulWidget {
   final List<SongModel> songs;
@@ -21,7 +20,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
   @override
   void initState() {
     super.initState();
-    // Use a post-frame callback to interact with the provider after the widget has been built.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<AudioPlayerService>(context, listen: false)
           .playPlaylist(widget.songs, widget.initialIndex);
@@ -41,6 +39,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
             ),
           );
         }
+
+        final isAura = uiManager.currentUI.isAura;
 
         return Scaffold(
           appBar: AppBar(
@@ -89,9 +89,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 child: Padding(
                   padding: EdgeInsets.symmetric(
                       horizontal: 16,
-                      vertical: uiManager.currentUI.preset == UIPreset.minimal
-                          ? 48
-                          : 32),
+                      vertical: isAura ? 48 : 32),
                   child: _buildPlayerPanel(context, themeManager, uiManager,
                       audioService, currentSong),
                 ),
@@ -110,27 +108,25 @@ class _PlayerScreenState extends State<PlayerScreen> {
     AudioPlayerService audioService,
     SongModel currentSong,
   ) {
-    final preset = uiManager.currentUI.preset;
-    final panelColor = preset == UIPreset.minimal
-        ? const Color(0xFFF7EFE6)
-        : preset == UIPreset.gradient
-            ? Colors.white.withValues(alpha: 0.92)
-            : themeManager.surfaceColor.withValues(alpha: 0.82);
-    final panelRadius = preset == UIPreset.gradient ? 28.0 : 22.0;
+    final isAura = uiManager.currentUI.isAura;
+    final panelColor = isAura
+        ? Colors.white.withValues(alpha: 0.1)
+        : themeManager.surfaceColor.withValues(alpha: 0.82);
+    final panelRadius = isAura ? 32.0 : 22.0;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: panelColor,
         borderRadius: BorderRadius.circular(panelRadius),
-        boxShadow: themeManager.cardShadows,
+        boxShadow: isAura ? [] : themeManager.cardShadows,
+        border: isAura ? Border.all(color: Colors.white.withValues(alpha: 0.1)) : null,
       ),
       child: Column(
         children: [
           // Artwork
           ClipRRect(
-            borderRadius:
-                BorderRadius.circular(preset == UIPreset.gradient ? 32 : 20),
+            borderRadius: BorderRadius.circular(isAura ? 100 : 20),
             child: QueryArtworkWidget(
               id: currentSong.id,
               type: ArtworkType.AUDIO,
@@ -141,8 +137,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 height: 220,
                 decoration: BoxDecoration(
                   color: themeManager.surfaceColor.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(
-                      preset == UIPreset.gradient ? 32 : 20),
+                  borderRadius: BorderRadius.circular(isAura ? 100 : 20),
                 ),
                 child: Icon(Icons.music_note,
                     size: 100,
@@ -192,14 +187,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   ),
                   onPressed: () => uiManager.toggleFavoriteMode(),
                 ),
-                IconButton(
-                  icon: Icon(Icons.share, color: themeManager.textColor),
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Share coming soon')),
-                    );
-                  },
-                ),
               ],
             ),
           ),
@@ -244,122 +231,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
               );
             },
           ),
-
-          const SizedBox(height: 16),
-
-          // Visualizer
-          if (uiManager.showVisualizer)
-            Container(
-              height: 60,
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: themeManager.accentColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(
-                    12,
-                    (index) => Container(
-                      width: 4,
-                      height: 20 + (index % 3) * 15,
-                      decoration: BoxDecoration(
-                        color: themeManager.accentColor,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-          // Lyrics
-          if (uiManager.showLyrics)
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: themeManager.surfaceColor.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'Lyrics',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: themeManager.textColor,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Lyrics for "${currentSong.title}" by ${currentSong.artist ?? 'Unknown Artist'} coming soon...',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: themeManager.subtitleColor,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // EQ
-          if (uiManager.showEQ)
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: themeManager.surfaceColor.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'Equalizer',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: themeManager.textColor,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: ['60Hz', '125Hz', '250Hz', '500Hz', '1k', '2k']
-                        .map((freq) {
-                      return Column(
-                        children: [
-                          SizedBox(
-                            height: 100,
-                            child: RotatedBox(
-                              quarterTurns: 3,
-                              child: Slider(
-                                value: 0.5,
-                                onChanged: (v) {},
-                                activeColor: themeManager.accentColor,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            freq,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: themeManager.subtitleColor,
-                            ),
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            ),
 
           const SizedBox(height: 12),
 

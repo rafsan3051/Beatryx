@@ -14,12 +14,14 @@ class MiniPlayer extends StatelessWidget {
     return Consumer2<AudioPlayerService, ThemeManager>(
       builder: (context, audio, themeManager, child) {
         final song = audio.currentSong;
-        if (song == null) return const SizedBox.shrink();
+        if (song == null || !audio.showMiniPlayer) return const SizedBox.shrink();
 
         return GestureDetector(
           onVerticalDragUpdate: (details) {
             if (details.primaryDelta! < -10) {
               _openPlayer(context, audio);
+            } else if (details.primaryDelta! > 10) {
+              audio.setShowMiniPlayer(false);
             }
           },
           onTap: () => _openPlayer(context, audio),
