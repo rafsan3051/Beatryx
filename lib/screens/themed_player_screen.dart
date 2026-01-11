@@ -61,22 +61,24 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
 
   void _showOptionsDialog() {
     final audioService = Provider.of<AudioPlayerService>(context, listen: false);
+    final theme = Provider.of<ThemeManager>(context, listen: false);
     final isAura = Provider.of<UIManager>(context, listen: false).currentUI.isAura;
+    final isDark = theme.isDarkMode;
     
     showModalBottomSheet(
       context: context,
-      backgroundColor: isAura ? Colors.white : const Color(0xFF1E1E1E),
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : (isAura ? Colors.white : theme.backgroundColor),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
       builder: (context) => Consumer<AudioPlayerService>(
         builder: (context, audio, _) => Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 12),
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: isAura ? Colors.black12 : Colors.white12, borderRadius: BorderRadius.circular(2))),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: isDark ? Colors.white10 : Colors.black12, borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 20),
             ListTile(
-              leading: Icon(Icons.timer_outlined, color: isAura ? Colors.black87 : Colors.white),
-              title: Text('Sleep Timer', style: TextStyle(color: isAura ? Colors.black87 : Colors.white)),
+              leading: Icon(Icons.timer_outlined, color: isDark ? Colors.white70 : Colors.black87),
+              title: Text('Sleep Timer', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
               onTap: () {
                 Navigator.pop(context);
                 _showCustomSleepTimer();
@@ -85,24 +87,24 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
             ListTile(
               leading: Icon(
                 audio.repeatMode == LoopMode.off ? Icons.repeat_rounded : (audio.repeatMode == LoopMode.one ? Icons.repeat_one_rounded : Icons.repeat_on_rounded),
-                color: audio.repeatMode != LoopMode.off ? (isAura ? const Color(0xFFD81B60) : const Color(0xFF00C2A0)) : (isAura ? Colors.black87 : Colors.white),
+                color: audio.repeatMode != LoopMode.off ? theme.accentColor : (isDark ? Colors.white38 : Colors.black26),
               ),
-              title: Text('Repeat Mode', style: TextStyle(color: isAura ? Colors.black87 : Colors.white)),
+              title: Text('Repeat Mode', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
               trailing: Text(
                 audio.repeatMode == LoopMode.off ? 'Off' : (audio.repeatMode == LoopMode.one ? 'One' : 'All'),
-                style: TextStyle(color: isAura ? Colors.black45 : Colors.white54),
+                style: TextStyle(color: isDark ? Colors.white38 : Colors.black45),
               ),
               onTap: audio.nextRepeatMode,
             ),
             ListTile(
               leading: Icon(
                 Icons.shuffle_rounded,
-                color: audio.isShuffleMode ? (isAura ? const Color(0xFFD81B60) : const Color(0xFF00C2A0)) : (isAura ? Colors.black87 : Colors.white),
+                color: audio.isShuffleMode ? theme.accentColor : (isDark ? Colors.white38 : Colors.black26),
               ),
-              title: Text('Shuffle', style: TextStyle(color: isAura ? Colors.black87 : Colors.white)),
+              title: Text('Shuffle', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
               trailing: Switch(
                 value: audio.isShuffleMode,
-                activeThumbColor: isAura ? const Color(0xFFD81B60) : const Color(0xFF00C2A0),
+                activeThumbColor: theme.accentColor,
                 onChanged: (_) => audio.toggleShuffle(),
               ),
               onTap: audio.toggleShuffle,
@@ -116,36 +118,37 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
 
   void _showCustomSleepTimer() {
     double sleepMinutes = 30;
-    final isAura = Provider.of<UIManager>(context, listen: false).currentUI.isAura;
+    final theme = Provider.of<ThemeManager>(context, listen: false);
+    final isDark = theme.isDarkMode;
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: isAura ? Colors.white : const Color(0xFF1E1E1E).withOpacity(0.9),
+          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-          title: Text('Set Sleep Timer', style: GoogleFonts.poppins(color: isAura ? Colors.black87 : Colors.white, fontSize: 18)),
+          title: Text('Set Sleep Timer', style: GoogleFonts.poppins(color: isDark ? Colors.white : Colors.black87, fontSize: 18)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('${sleepMinutes.toInt()} Minutes', style: TextStyle(color: isAura ? const Color(0xFFD81B60) : const Color(0xFF00C2A0), fontSize: 24, fontWeight: FontWeight.bold)),
+              Text('${sleepMinutes.toInt()} Minutes', style: TextStyle(color: theme.accentColor, fontSize: 24, fontWeight: FontWeight.bold)),
               Slider(
                 value: sleepMinutes,
                 min: 1,
                 max: 120,
-                activeColor: isAura ? const Color(0xFFD81B60) : const Color(0xFF00C2A0),
+                activeColor: theme.accentColor,
                 onChanged: (v) => setDialogState(() => sleepMinutes = v),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel', style: TextStyle(color: isAura ? Colors.black45 : Colors.white70))),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel', style: TextStyle(color: isDark ? Colors.white38 : Colors.black45))),
             ElevatedButton(
               onPressed: () {
                 _setSleepTimer(Duration(minutes: sleepMinutes.toInt()));
                 Navigator.pop(context);
               },
-              style: ElevatedButton.styleFrom(backgroundColor: isAura ? const Color(0xFFD81B60) : const Color(0xFF00C2A0)),
-              child: const Text('Set', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(backgroundColor: theme.accentColor),
+              child: Text('Set', style: TextStyle(color: isDark ? Colors.black : Colors.white)),
             )
           ],
         ),
@@ -168,6 +171,7 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
     final theme = Provider.of<ThemeManager>(context);
     final uiManager = Provider.of<UIManager>(context);
     final isAura = uiManager.currentUI.isAura;
+    final isDark = theme.isDarkMode;
     
     final currentPlaylist = audioService.playlist.isNotEmpty ? audioService.playlist : widget.songs;
     final currentSong = audioService.currentSong ?? (widget.songs.isNotEmpty ? widget.songs[widget.initialIndex] : null);
@@ -188,7 +192,7 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
     }
 
     return Scaffold(
-      backgroundColor: isAura ? Colors.white : theme.backgroundColor,
+      backgroundColor: isAura ? theme.backgroundColor : theme.backgroundColor,
       body: GestureDetector(
         onVerticalDragUpdate: (details) {
           if (details.primaryDelta! > 10) {
@@ -206,7 +210,10 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                 child: Container(
                   width: 300,
                   height: 300,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFFFFC0CB).withOpacity(0.3)),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle, 
+                    color: isDark ? theme.accentColor.withValues(alpha: 0.08) : const Color(0xFFFFC0CB).withValues(alpha: 0.3)
+                  ),
                 ),
               ),
               Positioned(
@@ -215,12 +222,15 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                 child: Container(
                   width: 400,
                   height: 400,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFFE6E6FA).withOpacity(0.4)),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle, 
+                    color: isDark ? theme.accentColor.withValues(alpha: 0.05) : const Color(0xFFE6E6FA).withValues(alpha: 0.4)
+                  ),
                 ),
               ),
               BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-                child: Container(color: Colors.white.withOpacity(0.1)),
+                child: Container(color: Colors.transparent),
               ),
             ] else
               AnimatedContainer(
@@ -229,7 +239,7 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [palette.dominantColor.withOpacity(0.3), theme.backgroundColor],
+                    colors: [palette.dominantColor.withValues(alpha: 0.3), theme.backgroundColor],
                   ),
                 ),
               ),
@@ -248,7 +258,7 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                           icon: Icon(
                             isAura ? Icons.keyboard_arrow_down_rounded : Icons.arrow_back_ios_new_rounded, 
                             size: 30, 
-                            color: isAura ? Colors.black87 : Colors.white
+                            color: isDark ? Colors.white70 : Colors.black87
                           ),
                           onPressed: () {
                             audioService.setShowMiniPlayer(true);
@@ -260,11 +270,11 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                           style: GoogleFonts.poppins(
                             fontSize: 18, 
                             fontWeight: FontWeight.w600, 
-                            color: isAura ? Colors.black87 : Colors.white
+                            color: isDark ? Colors.white : Colors.black87
                           ),
                         ),
                         IconButton(
-                          icon: Icon(isAura ? Icons.grid_view_rounded : Icons.timer_outlined, color: isAura ? Colors.black87 : Colors.white), 
+                          icon: Icon(isAura ? Icons.grid_view_rounded : Icons.timer_outlined, color: isDark ? Colors.white70 : Colors.black87), 
                           onPressed: _showOptionsDialog,
                         ),
                       ],
@@ -294,10 +304,10 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                                     height: MediaQuery.of(context).size.width * 0.75,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: Colors.white,
+                                      color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: isAura ? Colors.black.withOpacity(0.08) : palette.dominantColor.withOpacity(0.2),
+                                          color: isDark ? Colors.black45 : Colors.black.withValues(alpha: 0.08),
                                           blurRadius: 40,
                                           spreadRadius: 10,
                                         )
@@ -314,8 +324,8 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                                         artworkHeight: double.infinity,
                                         artworkFit: BoxFit.cover,
                                         nullArtworkWidget: Container(
-                                          color: const Color(0xFFF5F5F5),
-                                          child: Icon(Icons.music_note_rounded, size: 80, color: Colors.black12),
+                                          color: isDark ? Colors.white.withValues(alpha: 0.02) : const Color(0xFFF5F5F5),
+                                          child: Icon(Icons.music_note_rounded, size: 80, color: isDark ? Colors.white10 : Colors.black12),
                                         ),
                                       ),
                                     ),
@@ -337,7 +347,7 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                                   style: GoogleFonts.poppins(
                                     fontSize: 24, 
                                     fontWeight: FontWeight.bold, 
-                                    color: isAura ? Colors.black87 : Colors.white
+                                    color: isDark ? Colors.white : Colors.black87
                                   ), 
                                   maxLines: 1, 
                                   overflow: TextOverflow.ellipsis
@@ -347,7 +357,7 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                                   currentSong.artist ?? 'Unknown', 
                                   style: GoogleFonts.poppins(
                                     fontSize: 16, 
-                                    color: isAura ? Colors.black45 : Colors.white54
+                                    color: isDark ? Colors.white38 : Colors.black45
                                   )
                                 ),
                               ],
@@ -373,10 +383,10 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                                           data: SliderTheme.of(context).copyWith(
                                             trackHeight: 4, 
                                             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
-                                            activeTrackColor: isAura ? const Color(0xFFD81B60) : const Color(0xFF00C2A0),
-                                            inactiveTrackColor: isAura ? Colors.black.withOpacity(0.05) : Colors.white12,
-                                            thumbColor: isAura ? const Color(0xFFD81B60) : Colors.white,
-                                            overlayColor: (isAura ? const Color(0xFFD81B60) : const Color(0xFF00C2A0)).withOpacity(0.2),
+                                            activeTrackColor: theme.accentColor,
+                                            inactiveTrackColor: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                                            thumbColor: theme.accentColor,
+                                            overlayColor: theme.accentColor.withValues(alpha: 0.2),
                                           ),
                                           child: Slider(
                                             value: position.inMilliseconds.toDouble().clamp(0, total.inMilliseconds.toDouble() > 0 ? total.inMilliseconds.toDouble() : 1.0),
@@ -389,8 +399,8 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                                           child: Row(
                                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Text(_formatDuration(position), style: TextStyle(color: isAura ? Colors.black26 : Colors.white30, fontSize: 12, fontWeight: FontWeight.w500)),
-                                              Text(_formatDuration(total), style: TextStyle(color: isAura ? Colors.black26 : Colors.white30, fontSize: 12, fontWeight: FontWeight.w500)),
+                                              Text(_formatDuration(position), style: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 12, fontWeight: FontWeight.w500)),
+                                              Text(_formatDuration(total), style: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 12, fontWeight: FontWeight.w500)),
                                             ],
                                           ),
                                         ),
@@ -404,7 +414,7 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
                                     IconButton(
-                                      icon: Icon(Icons.skip_previous_rounded, color: isAura ? const Color(0xFFD81B60) : Colors.white, size: 40),
+                                      icon: Icon(Icons.skip_previous_rounded, color: theme.accentColor, size: 40),
                                       onPressed: audioService.playPrevious,
                                     ),
                                     
@@ -413,28 +423,28 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                                       child: Container(
                                         padding: const EdgeInsets.all(18),
                                         decoration: BoxDecoration(
-                                          gradient: isAura ? const LinearGradient(
-                                            colors: [Color(0xFF6C63FF), Color(0xFFD81B60)],
+                                          gradient: isAura ? LinearGradient(
+                                            colors: [const Color(0xFF6C63FF), theme.accentColor],
                                             begin: Alignment.topLeft,
                                             end: Alignment.bottomRight,
                                           ) : null,
                                           color: isAura ? null : Colors.white, 
                                           shape: BoxShape.circle,
-                                          boxShadow: isAura ? [
-                                            BoxShadow(color: const Color(0xFFD81B60).withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))
-                                          ] : null,
+                                          boxShadow: [
+                                            BoxShadow(color: theme.accentColor.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 8))
+                                          ],
                                         ),
                                         child: AnimatedIcon(
                                           icon: AnimatedIcons.play_pause,
                                           progress: _playPauseController,
-                                          color: isAura ? Colors.white : Colors.black,
+                                          color: Colors.white,
                                           size: 45,
                                         ),
                                       ),
                                     ),
                                     
                                     IconButton(
-                                      icon: Icon(Icons.skip_next_rounded, color: isAura ? const Color(0xFFD81B60) : Colors.white, size: 40),
+                                      icon: Icon(Icons.skip_next_rounded, color: theme.accentColor, size: 40),
                                       onPressed: audioService.playNext,
                                     ),
                                   ],
@@ -450,8 +460,8 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                                     onTap: () => _sheetController.animateTo(0.8, duration: const Duration(milliseconds: 300), curve: Curves.easeOut),
                                     child: Column(
                                       children: [
-                                        const Icon(Icons.keyboard_arrow_up_rounded, color: Colors.black26),
-                                        Text('Next', style: GoogleFonts.poppins(fontSize: 12, color: Colors.black45, fontWeight: FontWeight.w500)),
+                                        Icon(Icons.keyboard_arrow_up_rounded, color: isDark ? Colors.white24 : Colors.black26),
+                                        Text('Next', style: GoogleFonts.poppins(fontSize: 12, color: isDark ? Colors.white38 : Colors.black45, fontWeight: FontWeight.w500)),
                                       ],
                                     ),
                                   ),
@@ -476,10 +486,10 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                 maxChildSize: 0.85,
                 snap: true,
                 builder: (context, scrollController) => Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(35)),
-                    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 20, spreadRadius: 5)],
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(35)),
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.1), blurRadius: 20, spreadRadius: 5)],
                   ),
                   child: Column(
                     children: [
@@ -487,13 +497,13 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                         margin: const EdgeInsets.only(top: 12, bottom: 8),
                         width: 40,
                         height: 4,
-                        decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(2)),
+                        decoration: BoxDecoration(color: isDark ? Colors.white10 : Colors.black12, borderRadius: BorderRadius.circular(2)),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Text(
                           'Up Next', 
-                          style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)
+                          style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)
                         ),
                       ),
                       Expanded(
@@ -513,21 +523,21 @@ class _ThemedPlayerScreenState extends State<ThemedPlayerScreen> with SingleTick
                                   nullArtworkWidget: Container(
                                     width: 45,
                                     height: 45,
-                                    color: Colors.black.withOpacity(0.05),
-                                    child: const Icon(Icons.music_note, color: Colors.black12),
+                                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+                                    child: Icon(Icons.music_note, color: isDark ? Colors.white10 : Colors.black12),
                                   ),
                                 ),
                               ),
                               title: Text(
                                 song.title, 
                                 style: TextStyle(
-                                  color: isPlaying ? const Color(0xFFD81B60) : Colors.black87, 
+                                  color: isPlaying ? theme.accentColor : (isDark ? Colors.white : Colors.black87), 
                                   fontWeight: isPlaying ? FontWeight.bold : FontWeight.w500
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              subtitle: Text(song.artist ?? 'Unknown', style: const TextStyle(color: Colors.black45, fontSize: 12)),
+                              subtitle: Text(song.artist ?? 'Unknown', style: TextStyle(color: isDark ? Colors.white38 : Colors.black45, fontSize: 12)),
                               onTap: () {
                                 audioService.playPlaylist(currentPlaylist, i);
                                 palette.updatePalette(song.id);

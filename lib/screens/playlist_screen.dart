@@ -162,7 +162,7 @@ class PlaylistScreen extends StatelessWidget {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: isAura ? const Color(0xFFD81B60).withOpacity(0.1) : theme.accentColor.withOpacity(0.2),
+                      color: isAura ? const Color(0xFFD81B60).withValues(alpha: 0.1) : theme.accentColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(Icons.music_note_rounded, color: isAura ? const Color(0xFFD81B60) : theme.accentColor),

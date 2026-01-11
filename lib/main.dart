@@ -63,13 +63,12 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer2<ThemeManager, UIManager>(
         builder: (context, themeManager, uiManager, _) {
-          final isAura = uiManager.currentUI.isAura;
           final baseTheme = themeManager.toThemeData();
           
           return MaterialApp(
             title: 'Beatryx',
             theme: baseTheme.copyWith(
-              scaffoldBackgroundColor: isAura ? Colors.white : themeManager.backgroundColor,
+              scaffoldBackgroundColor: themeManager.backgroundColor,
               pageTransitionsTheme: const PageTransitionsTheme(
                 builders: {
                   TargetPlatform.android: ZoomPageTransitionsBuilder(),
@@ -137,53 +136,59 @@ class _MainScreenState extends State<MainScreen> {
       body: Stack(
         children: [
           // Background
-          if (isAura) ...[
-            Container(color: Colors.white), // Changed to solid white for all tabs
-            Positioned(
-              top: -150,
-              right: -100,
-              child: Container(
-                width: 400,
-                height: 400,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFFFFC0CB).withValues(alpha: 0.2), // Lighter pink
+          Consumer<PaletteService>(
+            builder: (context, palette, _) => AnimatedContainer(
+              duration: const Duration(seconds: 1),
+              decoration: BoxDecoration(
+                color: theme.backgroundColor,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    (isAura ? theme.accentColor : palette.dominantColor).withValues(alpha: 0.1),
+                    theme.backgroundColor,
+                    (isAura ? theme.accentColor : palette.dominantColor).withValues(alpha: 0.05),
+                  ],
                 ),
               ),
-            ),
-            Positioned(
-              bottom: -150,
-              left: -100,
-              child: Container(
-                width: 500,
-                height: 500,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFFE6E6FA).withValues(alpha: 0.3), // Lighter lavender
-                ),
-              ),
-            ),
-            BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-              child: Container(color: Colors.transparent),
-            ),
-          ] else
-            Consumer<PaletteService>(
-              builder: (context, palette, _) => AnimatedContainer(
-                duration: const Duration(seconds: 1),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      palette.dominantColor.withValues(alpha: 0.15),
-                      theme.backgroundColor,
-                      palette.dominantColor.withValues(alpha: 0.05),
-                    ],
+              child: isAura ? Stack(
+                children: [
+                  Positioned(
+                    top: -150,
+                    right: -100,
+                    child: Container(
+                      width: 400,
+                      height: 400,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: theme.isDarkMode 
+                            ? theme.accentColor.withValues(alpha: 0.08)
+                            : const Color(0xFFFFC0CB).withValues(alpha: 0.2),
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                  Positioned(
+                    bottom: -150,
+                    left: -100,
+                    child: Container(
+                      width: 500,
+                      height: 500,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: theme.isDarkMode
+                            ? theme.accentColor.withValues(alpha: 0.05)
+                            : const Color(0xFFE6E6FA).withValues(alpha: 0.3),
+                      ),
+                    ),
+                  ),
+                  BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+                    child: Container(color: Colors.transparent),
+                  ),
+                ],
+              ) : null,
             ),
+          ),
 
           PageView(
             controller: _pageController,
@@ -228,8 +233,8 @@ class _MainScreenState extends State<MainScreen> {
                                 borderRadius: BorderRadius.circular(2),
                                 child: LinearProgressIndicator(
                                   value: progress.clamp(0.0, 1.0),
-                                  backgroundColor: Colors.black12,
-                                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFD81B60)),
+                                  backgroundColor: theme.isDarkMode ? Colors.white10 : Colors.black12,
+                                  valueColor: AlwaysStoppedAnimation<Color>(theme.isDarkMode ? theme.accentColor : const Color(0xFFD81B60)),
                                   minHeight: 3,
                                 ),
                               ),
@@ -262,17 +267,21 @@ class _MainScreenState extends State<MainScreen> {
       margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       height: 70,
       decoration: BoxDecoration(
-        color: isAura ? Colors.white.withValues(alpha: 0.85) : Colors.white.withValues(alpha: 0.08),
+        color: theme.isDarkMode 
+            ? theme.surfaceColor.withValues(alpha: 0.8)
+            : (isAura ? Colors.white.withValues(alpha: 0.85) : Colors.white.withValues(alpha: 0.08)),
         borderRadius: BorderRadius.circular(35),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isAura ? 0.05 : 0.2),
+            color: Colors.black.withValues(alpha: theme.isDarkMode ? 0.4 : (isAura ? 0.05 : 0.2)),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
         ],
         border: Border.all(
-          color: isAura ? Colors.white.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.1),
+          color: theme.isDarkMode 
+              ? Colors.white.withValues(alpha: 0.05)
+              : (isAura ? Colors.white.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.1)),
         ),
       ),
       child: ClipRRect(
@@ -296,6 +305,7 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget _buildAuraCenterButton(bool isAura) {
     if (!isAura) return const SizedBox.shrink();
+    final theme = Provider.of<ThemeManager>(context);
     return Consumer<AudioPlayerService>(
       builder: (context, audio, _) {
         final song = audio.currentSong;
@@ -320,7 +330,7 @@ class _MainScreenState extends State<MainScreen> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFD81B60).withValues(alpha: 0.3),
+                  color: (theme.isDarkMode ? theme.accentColor : const Color(0xFFD81B60)).withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 )
@@ -334,12 +344,12 @@ class _MainScreenState extends State<MainScreen> {
                       type: ArtworkType.AUDIO,
                       artworkFit: BoxFit.cover,
                       nullArtworkWidget: Container(
-                        color: const Color(0xFFD81B60),
+                        color: theme.isDarkMode ? theme.accentColor : const Color(0xFFD81B60),
                         child: const Icon(Icons.music_note, color: Colors.white),
                       ),
                     )
                   : Container(
-                      color: const Color(0xFFD81B60),
+                      color: theme.isDarkMode ? theme.accentColor : const Color(0xFFD81B60),
                       child: const Icon(Icons.music_note, color: Colors.white),
                     ),
             ),
@@ -366,8 +376,8 @@ class _MainScreenState extends State<MainScreen> {
       icon: Icon(
         icon,
         color: isSelected 
-            ? (isAura ? const Color(0xFFD81B60) : theme.accentColor) 
-            : (isAura ? Colors.black26 : theme.textColor.withValues(alpha: 0.4)),
+            ? (isAura ? (theme.isDarkMode ? theme.accentColor : const Color(0xFFD81B60)) : theme.accentColor) 
+            : (isAura ? (theme.isDarkMode ? Colors.white38 : Colors.black26) : theme.textColor.withValues(alpha: 0.4)),
         size: 26,
       ),
     );

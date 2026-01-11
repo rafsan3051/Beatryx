@@ -17,6 +17,7 @@ class FavoritesScreen extends StatelessWidget {
     final musicProvider = Provider.of<MusicProvider>(context);
     final uiManager = Provider.of<UIManager>(context);
     final isAura = uiManager.currentUI.isAura;
+    final isDark = theme.isDarkMode;
     
     final favoriteSongs = musicProvider.songs.where((song) => 
       playlistService.isFavorite(song.id.toString())
@@ -35,7 +36,7 @@ class FavoritesScreen extends StatelessWidget {
         title: Text(
           'Favourites',
           style: TextStyle(
-            color: isAura ? Colors.black87 : theme.textColor,
+            color: isAura ? (isDark ? Colors.white : Colors.black87) : theme.textColor,
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
@@ -49,13 +50,13 @@ class FavoritesScreen extends StatelessWidget {
                   Icon(
                     Icons.favorite_border_rounded, 
                     size: 64, 
-                    color: isAura ? Colors.black12 : theme.subtitleColor
+                    color: isAura ? (isDark ? Colors.white10 : Colors.black12) : theme.subtitleColor
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'No favorites yet',
                     style: TextStyle(
-                      color: isAura ? Colors.black45 : theme.textColor, 
+                      color: isAura ? (isDark ? Colors.white38 : Colors.black45) : theme.textColor, 
                       fontSize: 18
                     ),
                   ),
@@ -78,12 +79,12 @@ class FavoritesScreen extends StatelessWidget {
                         width: 50,
                         height: 50,
                         decoration: BoxDecoration(
-                          color: isAura ? Colors.black.withOpacity(0.05) : theme.surfaceColor,
+                          color: isAura ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)) : theme.surfaceColor,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
                           Icons.music_note_rounded, 
-                          color: isAura ? Colors.black26 : theme.subtitleColor
+                          color: isAura ? (isDark ? Colors.white24 : Colors.black26) : theme.subtitleColor
                         ),
                       ),
                     ),
@@ -93,7 +94,7 @@ class FavoritesScreen extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: isAura ? Colors.black87 : theme.textColor, 
+                      color: isAura ? (isDark ? Colors.white : Colors.black87) : theme.textColor, 
                       fontWeight: FontWeight.w600
                     ),
                   ),
@@ -101,12 +102,12 @@ class FavoritesScreen extends StatelessWidget {
                     song.artist ?? "Unknown Artist",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: isAura ? Colors.black45 : theme.subtitleColor),
+                    style: TextStyle(color: isAura ? (isDark ? Colors.white38 : Colors.black45) : theme.subtitleColor),
                   ),
                   trailing: IconButton(
                     icon: Icon(
                       Icons.favorite, 
-                      color: isAura ? const Color(0xFFD81B60) : Colors.red
+                      color: isAura ? theme.accentColor : Colors.red
                     ),
                     onPressed: () => playlistService.toggleFavorite(song.id.toString()),
                   ),

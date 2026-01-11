@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +6,6 @@ import 'package:on_audio_query/on_audio_query.dart';
 import '../services/music_provider.dart';
 import '../services/theme_manager.dart';
 import '../services/user_provider.dart';
-import '../services/audio_service.dart';
 import '../services/playlist_service.dart';
 import '../services/ui_manager.dart';
 import '../models/song.dart';
@@ -33,19 +31,19 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
     return 'Good Night';
   }
 
-  void _showSearchDialog(BuildContext context, MusicProvider musicProvider) {
+  void _showSearchDialog(BuildContext context, MusicProvider musicProvider, bool isDark) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Search',
-      pageBuilder: (context, anim1, anim2) => _SearchOverlay(musicProvider: musicProvider),
+      pageBuilder: (context, anim1, anim2) => _SearchOverlay(musicProvider: musicProvider, isDark: isDark),
       transitionBuilder: (context, anim1, anim2, child) {
         return FadeTransition(opacity: anim1, child: child);
       },
     );
   }
 
-  void _showProfileMenu(BuildContext context, UserProvider userProvider, ThemeManager theme) {
+  void _showProfileMenu(BuildContext context, UserProvider userProvider, ThemeManager theme, bool isDark) {
     showDialog(
       context: context,
       builder: (context) => Center(
@@ -53,7 +51,7 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 32),
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
@@ -73,22 +71,24 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 24),
                 _buildProfileOption(
                   icon: Icons.person_outline_rounded,
                   title: 'Set Profile Manually',
+                  isDark: isDark,
                   onTap: () {
                     Navigator.pop(context);
-                    _showManualProfileDialog(context, userProvider, theme);
+                    _showManualProfileDialog(context, userProvider, theme, isDark);
                   },
                 ),
                 const SizedBox(height: 12),
                 _buildProfileOption(
                   icon: Icons.login_rounded,
                   title: 'Sign in with Google',
+                  isDark: isDark,
                   onTap: () {
                     Navigator.pop(context);
                     userProvider.signInWithGoogle();
@@ -97,7 +97,7 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Close', style: TextStyle(color: Colors.black45)),
+                  child: Text('Close', style: TextStyle(color: isDark ? Colors.white38 : Colors.black45)),
                 ),
               ],
             ),
@@ -107,35 +107,35 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
     );
   }
 
-  Widget _buildProfileOption({required IconData icon, required String title, required VoidCallback onTap}) {
+  Widget _buildProfileOption({required IconData icon, required String title, required VoidCallback onTap, required bool isDark}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.05),
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
             Icon(icon, color: const Color(0xFFD81B60)),
             const SizedBox(width: 16),
-            Text(title, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500)),
+            Text(title, style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.w500)),
           ],
         ),
       ),
     );
   }
 
-  void _showManualProfileDialog(BuildContext context, UserProvider userProvider, ThemeManager theme) {
+  void _showManualProfileDialog(BuildContext context, UserProvider userProvider, ThemeManager theme, bool isDark) {
     final nameController = TextEditingController(text: userProvider.displayName);
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: const Text('Set Profile', style: TextStyle(color: Colors.black87)),
+        title: Text('Set Profile', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -147,7 +147,7 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
               child: Consumer<UserProvider>(
                 builder: (context, user, _) => CircleAvatar(
                   radius: 40,
-                  backgroundColor: Colors.black.withValues(alpha: 0.05),
+                  backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
                   backgroundImage: user.photoUrl != null && File(user.photoUrl!).existsSync()
                       ? FileImage(File(user.photoUrl!))
                       : null,
@@ -160,11 +160,12 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
             const SizedBox(height: 24),
             TextField(
               controller: nameController,
-              style: const TextStyle(color: Colors.black87),
+              style: TextStyle(color: isDark ? Colors.white : Colors.black87),
               decoration: InputDecoration(
                 hintText: 'Enter your name',
+                hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black45),
                 filled: true,
-                fillColor: Colors.black.withValues(alpha: 0.05),
+                fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
               ),
             ),
@@ -203,32 +204,32 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
     return sortedSongs;
   }
 
-  void _showSortOptions() {
+  void _showSortOptions(bool isDark) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
       builder: (context) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Sort By', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+            Text('Sort By', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
             const SizedBox(height: 16),
-            _buildSortOption('Recently Added', SongSortOrder.newest),
-            _buildSortOption('Oldest First', SongSortOrder.oldest),
-            _buildSortOption('Alphabetical', SongSortOrder.alphabetical),
-            _buildSortOption('Artist Name', SongSortOrder.artist),
+            _buildSortOption('Recently Added', SongSortOrder.newest, isDark),
+            _buildSortOption('Oldest First', SongSortOrder.oldest, isDark),
+            _buildSortOption('Alphabetical', SongSortOrder.alphabetical, isDark),
+            _buildSortOption('Artist Name', SongSortOrder.artist, isDark),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSortOption(String title, SongSortOrder order) {
+  Widget _buildSortOption(String title, SongSortOrder order, bool isDark) {
     final isSelected = _currentSortOrder == order;
     return ListTile(
-      title: Text(title, style: TextStyle(color: isSelected ? const Color(0xFFD81B60) : Colors.black87, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+      title: Text(title, style: TextStyle(color: isSelected ? const Color(0xFFD81B60) : (isDark ? Colors.white70 : Colors.black87), fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
       trailing: isSelected ? const Icon(Icons.check_circle, color: Color(0xFFD81B60)) : null,
       onTap: () {
         setState(() => _currentSortOrder = order);
@@ -296,6 +297,7 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
     final playlistService = Provider.of<PlaylistService>(context);
     final theme = Provider.of<ThemeManager>(context);
     final uiManager = Provider.of<UIManager>(context);
+    final isDark = theme.isDarkMode;
 
     final allSongsForStats = musicProvider.songs.map((s) => Song(
       id: s.id.toString(),
@@ -330,36 +332,36 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
                       children: [
                         Text(
                           'Hi, ${userProvider.displayName} !',
-                          style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+                          style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                           maxLines: 1, overflow: TextOverflow.ellipsis,
                         ),
-                        Text(_getGreeting(), style: GoogleFonts.poppins(fontSize: 14, color: Colors.black45, fontWeight: FontWeight.w500)),
+                        Text(_getGreeting(), style: GoogleFonts.poppins(fontSize: 14, color: isDark ? Colors.white38 : Colors.black45, fontWeight: FontWeight.w500)),
                       ],
                     ),
                   ),
                   const SizedBox(width: 16),
                   GestureDetector(
-                    onTap: () => _showSearchDialog(context, musicProvider),
+                    onTap: () => _showSearchDialog(context, musicProvider, isDark),
                     child: Container(
                       padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.05), shape: BoxShape.circle),
-                      child: const Icon(Icons.search_rounded, color: Colors.black87),
+                      decoration: BoxDecoration(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05), shape: BoxShape.circle),
+                      child: Icon(Icons.search_rounded, color: isDark ? Colors.white70 : Colors.black87),
                     ),
                   ),
                   const SizedBox(width: 12),
                   GestureDetector(
-                    onTap: () => _showProfileMenu(context, userProvider, theme),
+                    onTap: () => _showProfileMenu(context, userProvider, theme, isDark),
                     child: Consumer<UserProvider>(
                       builder: (context, user, _) => CircleAvatar(
                         radius: 20,
-                        backgroundColor: Colors.black.withValues(alpha: 0.05),
+                        backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
                         backgroundImage: user.photoUrl != null 
                             ? (user.isSignedIn 
                                 ? NetworkImage(user.photoUrl!) 
                                 : (File(user.photoUrl!).existsSync() ? FileImage(File(user.photoUrl!)) : null) as ImageProvider?)
                             : null,
                         child: user.photoUrl == null || (!user.isSignedIn && !File(user.photoUrl!).existsSync())
-                            ? const Icon(Icons.person_rounded, color: Colors.black45)
+                            ? Icon(Icons.person_rounded, color: isDark ? Colors.white38 : Colors.black45)
                             : null,
                       ),
                     ),
@@ -436,7 +438,7 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
-              child: Text('Recently Played', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+              child: Text('Recently Played', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
             ),
           ),
           
@@ -464,15 +466,15 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
                             children: [
                               Container(
                                 width: 70, height: 70,
-                                decoration: const BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)]),
+                                decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: isDark ? Colors.black45 : Colors.black12, blurRadius: 10)]),
                                 clipBehavior: Clip.antiAlias,
                                 child: QueryArtworkWidget(
                                   id: song.id, type: ArtworkType.AUDIO,
-                                  nullArtworkWidget: Container(color: Colors.white, child: const Icon(Icons.music_note, color: Colors.black12)),
+                                  nullArtworkWidget: Container(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white, child: Icon(Icons.music_note, color: isDark ? Colors.white24 : Colors.black12)),
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 11, color: Colors.black54)),
+                              Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 11, color: isDark ? Colors.white54 : Colors.black54)),
                             ],
                           ),
                         ),
@@ -489,8 +491,8 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('All Songs', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
-                  IconButton(icon: const Icon(Icons.sort_rounded, color: Color(0xFFD81B60)), onPressed: _showSortOptions),
+                  Text('All Songs', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+                  IconButton(icon: const Icon(Icons.sort_rounded, color: Color(0xFFD81B60)), onPressed: () => _showSortOptions(isDark)),
                 ],
               ),
             ),
@@ -516,12 +518,12 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
                           borderRadius: BorderRadius.circular(12),
                           child: QueryArtworkWidget(
                             id: song.id, type: ArtworkType.AUDIO,
-                            nullArtworkWidget: Container(width: 50, height: 50, color: Colors.black.withValues(alpha: 0.05), child: const Icon(Icons.music_note_rounded, color: Colors.black12)),
+                            nullArtworkWidget: Container(width: 50, height: 50, color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05), child: Icon(Icons.music_note_rounded, color: isDark ? Colors.white24 : Colors.black12)),
                           ),
                         ),
-                        title: Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87)),
-                        subtitle: Text(song.artist ?? 'Unknown', maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12, color: Colors.black45)),
-                        trailing: const Icon(Icons.more_vert, color: Colors.black12),
+                        title: Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87)),
+                        subtitle: Text(song.artist ?? 'Unknown', maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 12, color: isDark ? Colors.white38 : Colors.black45)),
+                        trailing: Icon(Icons.more_vert, color: isDark ? Colors.white24 : Colors.black12),
                       ),
                     );
 
@@ -558,7 +560,8 @@ class _AuraHomeScreenState extends State<AuraHomeScreen> {
 
 class _SearchOverlay extends StatefulWidget {
   final MusicProvider musicProvider;
-  const _SearchOverlay({required this.musicProvider});
+  final bool isDark;
+  const _SearchOverlay({required this.musicProvider, required this.isDark});
 
   @override
   State<_SearchOverlay> createState() => _SearchOverlayState();
@@ -585,19 +588,24 @@ class _SearchOverlayState extends State<_SearchOverlay> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: widget.isDark ? const Color(0xFF121212) : Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: widget.isDark ? const Color(0xFF121212) : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: widget.isDark ? Colors.white70 : Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
         title: TextField(
           controller: _controller,
           autofocus: true,
           onChanged: _search,
-          decoration: const InputDecoration(hintText: 'Search songs, artists...', border: InputBorder.none),
+          style: TextStyle(color: widget.isDark ? Colors.white : Colors.black87),
+          decoration: InputDecoration(
+            hintText: 'Search songs, artists...', 
+            hintStyle: TextStyle(color: widget.isDark ? Colors.white38 : Colors.black45),
+            border: InputBorder.none
+          ),
         ),
       ),
       body: ListView.builder(
@@ -610,11 +618,11 @@ class _SearchOverlayState extends State<_SearchOverlay> {
               borderRadius: BorderRadius.circular(8),
               child: QueryArtworkWidget(
                 id: song.id, type: ArtworkType.AUDIO,
-                nullArtworkWidget: Container(width: 45, height: 45, color: Colors.black.withValues(alpha: 0.05), child: const Icon(Icons.music_note, color: Colors.black12)),
+                nullArtworkWidget: Container(width: 45, height: 45, color: widget.isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05), child: Icon(Icons.music_note, color: widget.isDark ? Colors.white24 : Colors.black12)),
               ),
             ),
-            title: Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-            subtitle: Text(song.artist ?? 'Unknown', maxLines: 1),
+            title: Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: widget.isDark ? Colors.white : Colors.black87)),
+            subtitle: Text(song.artist ?? 'Unknown', maxLines: 1, style: TextStyle(color: widget.isDark ? Colors.white38 : Colors.black45)),
             onTap: () {
               Navigator.push(
                 context,

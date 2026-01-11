@@ -54,6 +54,7 @@ class AudioPlayerService extends ChangeNotifier {
         );
       }).toList();
 
+      // ignore: deprecated_member_use
       await _audioPlayer.setAudioSource(
         ConcatenatingAudioSource(children: audioSources),
         initialIndex: initialIndex,

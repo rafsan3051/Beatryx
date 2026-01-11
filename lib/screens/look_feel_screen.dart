@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/theme_manager.dart';
+import '../services/ui_manager.dart';
 import '../models/app_theme.dart';
 
 class LookFeelScreen extends StatelessWidget {
@@ -9,20 +10,22 @@ class LookFeelScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeManager = Provider.of<ThemeManager>(context);
+    final uiManager = Provider.of<UIManager>(context);
+    final isAura = uiManager.currentUI.isAura;
 
     return Scaffold(
-      backgroundColor: themeManager.backgroundColor,
+      backgroundColor: isAura ? Colors.white : themeManager.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: themeManager.textColor),
+          icon: Icon(Icons.arrow_back, color: isAura ? Colors.black87 : themeManager.textColor),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Look & Feel',
           style: TextStyle(
-            color: themeManager.textColor,
+            color: isAura ? Colors.black87 : themeManager.textColor,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -31,16 +34,17 @@ class LookFeelScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _SectionHeader(title: 'THEMES', themeManager: themeManager),
+          _SectionHeader(title: 'THEMES', themeManager: themeManager, isAura: isAura),
           const SizedBox(height: 8),
           ...AppTheme.allThemes.map((theme) => _ThemeTile(
                 theme: theme,
                 isSelected: themeManager.currentTheme.name == theme.name,
                 onTap: () => themeManager.setTheme(theme),
                 themeManager: themeManager,
+                isAura: isAura,
               )),
           const SizedBox(height: 24),
-          _SectionHeader(title: 'ACCENT COLOR', themeManager: themeManager),
+          _SectionHeader(title: 'ACCENT COLOR', themeManager: themeManager, isAura: isAura),
           const SizedBox(height: 16),
           SizedBox(
             height: 50,
@@ -59,7 +63,7 @@ class LookFeelScreen extends StatelessWidget {
                       color: color,
                       shape: BoxShape.circle,
                       border: isSelected
-                          ? Border.all(color: themeManager.textColor, width: 3)
+                          ? Border.all(color: isAura ? Colors.black87 : themeManager.textColor, width: 3)
                           : null,
                     ),
                     child: isSelected
@@ -85,6 +89,7 @@ class LookFeelScreen extends StatelessWidget {
       const Color(0xFF4ECDC4),
       const Color(0xFFFF8C42),
       const Color(0xFF00D9FF),
+      const Color(0xFFD81B60),
     ];
   }
 }
@@ -92,15 +97,16 @@ class LookFeelScreen extends StatelessWidget {
 class _SectionHeader extends StatelessWidget {
   final String title;
   final ThemeManager themeManager;
+  final bool isAura;
 
-  const _SectionHeader({required this.title, required this.themeManager});
+  const _SectionHeader({required this.title, required this.themeManager, required this.isAura});
 
   @override
   Widget build(BuildContext context) {
     return Text(
       title,
       style: TextStyle(
-        color: themeManager.accentColor,
+        color: isAura ? const Color(0xFFD81B60) : themeManager.accentColor,
         fontSize: 12,
         fontWeight: FontWeight.bold,
         letterSpacing: 1.2,
@@ -114,12 +120,14 @@ class _ThemeTile extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
   final ThemeManager themeManager;
+  final bool isAura;
 
   const _ThemeTile({
     required this.theme,
     required this.isSelected,
     required this.onTap,
     required this.themeManager,
+    required this.isAura,
   });
 
   @override
@@ -127,9 +135,9 @@ class _ThemeTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: themeManager.surfaceColor,
+        color: isAura ? Colors.black.withValues(alpha: 0.05) : themeManager.surfaceColor,
         borderRadius: BorderRadius.circular(16),
-        border: isSelected ? Border.all(color: themeManager.accentColor, width: 2) : null,
+        border: isSelected ? Border.all(color: isAura ? const Color(0xFFD81B60) : themeManager.accentColor, width: 2) : null,
       ),
       child: ListTile(
         onTap: onTap,
@@ -156,17 +164,17 @@ class _ThemeTile extends StatelessWidget {
         title: Text(
           theme.name,
           style: TextStyle(
-            color: themeManager.textColor,
+            color: isAura ? Colors.black87 : themeManager.textColor,
             fontWeight: FontWeight.bold,
           ),
         ),
         subtitle: Text(
           theme.isDark ? 'Dark Theme' : 'Light Theme',
-          style: TextStyle(color: themeManager.subtitleColor),
+          style: TextStyle(color: isAura ? Colors.black45 : themeManager.subtitleColor),
         ),
         trailing: isSelected
-            ? Icon(Icons.radio_button_checked, color: themeManager.accentColor)
-            : Icon(Icons.radio_button_unchecked, color: themeManager.subtitleColor),
+            ? Icon(Icons.radio_button_checked, color: isAura ? const Color(0xFFD81B60) : themeManager.accentColor)
+            : Icon(Icons.radio_button_unchecked, color: isAura ? Colors.black26 : themeManager.subtitleColor),
       ),
     );
   }
