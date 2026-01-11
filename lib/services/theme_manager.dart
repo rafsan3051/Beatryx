@@ -12,8 +12,25 @@ class ThemeManager extends ChangeNotifier {
 
   bool get isDarkMode => _currentTheme.isDark;
 
-  Color get backgroundColor => _currentTheme.backgroundColor;
-  Color get surfaceColor => _currentTheme.surfaceColor;
+  Color get backgroundColor {
+    final baseColor = _currentTheme.backgroundColor;
+    // Tint the background color with the current accent color for an adaptive feel
+    // This prevents "all black" backgrounds in dark mode and matches Aura's behavior
+    return Color.alphaBlend(
+      _customAccentColor.withValues(alpha: isDarkMode ? 0.05 : 0.02),
+      baseColor,
+    );
+  }
+
+  Color get surfaceColor {
+    final baseColor = _currentTheme.surfaceColor;
+    // Surface color should be slightly more tinted than background
+    return Color.alphaBlend(
+      _customAccentColor.withValues(alpha: isDarkMode ? 0.1 : 0.05),
+      baseColor,
+    );
+  }
+
   Color get textColor => isDarkMode ? Colors.white : const Color(0xFF1A1A1A);
   Color get subtitleColor => isDarkMode ? Colors.white38 : const Color(0xFF666666);
   Color get primaryColor => _currentTheme.primaryColor;

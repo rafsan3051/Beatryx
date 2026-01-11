@@ -541,7 +541,7 @@ class _ThemedHomeScreenState extends State<ThemedHomeScreen> {
     final sortedSongs = _getSortedSongs(musicProvider.songs);
 
     return Scaffold(
-      backgroundColor: theme.backgroundColor,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Stack(
           children: [

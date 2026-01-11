@@ -135,7 +135,7 @@ class _MainScreenState extends State<MainScreen> {
       extendBody: true,
       body: Stack(
         children: [
-          // Background
+          // Universal Background for all UIs - Now adapts to Accent Color for both Harmoniq and Aura
           Consumer<PaletteService>(
             builder: (context, palette, _) => AnimatedContainer(
               duration: const Duration(seconds: 1),
@@ -145,50 +145,56 @@ class _MainScreenState extends State<MainScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    (isAura ? theme.accentColor : palette.dominantColor)
-                        .withValues(alpha: 0.1),
+                    // Use a blend of Accent Color and Dominant Color for Harmoniq,
+                    // or just Accent Color for Aura. This prevents "all black" backgrounds.
+                    (isAura 
+                        ? theme.accentColor 
+                        : Color.alphaBlend(theme.accentColor.withValues(alpha: 0.5), palette.dominantColor))
+                        .withValues(alpha: theme.isDarkMode ? 0.15 : 0.1),
                     theme.backgroundColor,
-                    (isAura ? theme.accentColor : palette.dominantColor)
-                        .withValues(alpha: 0.05),
+                    (isAura 
+                        ? theme.accentColor 
+                        : Color.alphaBlend(theme.accentColor.withValues(alpha: 0.3), palette.dominantColor))
+                        .withValues(alpha: theme.isDarkMode ? 0.1 : 0.05),
                   ],
                 ),
               ),
-              child: isAura
-                  ? Stack(
-                      children: [
-                        Positioned(
-                          top: -150,
-                          right: -100,
-                          child: Container(
-                            width: 400,
-                            height: 400,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: theme.accentColor.withValues(
-                                  alpha: theme.isDarkMode ? 0.08 : 0.15),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: -150,
-                          left: -100,
-                          child: Container(
-                            width: 500,
-                            height: 500,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: theme.accentColor.withValues(
-                                  alpha: theme.isDarkMode ? 0.05 : 0.1),
-                            ),
-                          ),
-                        ),
-                        BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-                          child: Container(color: Colors.transparent),
-                        ),
-                      ],
-                    )
-                  : null,
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: -150,
+                    right: -100,
+                    child: AnimatedContainer(
+                      duration: const Duration(seconds: 1),
+                      width: 400,
+                      height: 400,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: theme.accentColor.withValues(
+                            alpha: theme.isDarkMode ? 0.12 : 0.2),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: -150,
+                    left: -100,
+                    child: AnimatedContainer(
+                      duration: const Duration(seconds: 1),
+                      width: 500,
+                      height: 500,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: theme.accentColor.withValues(
+                            alpha: theme.isDarkMode ? 0.08 : 0.15),
+                      ),
+                    ),
+                  ),
+                  BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+                    child: Container(color: Colors.transparent),
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -278,14 +284,12 @@ class _MainScreenState extends State<MainScreen> {
       decoration: BoxDecoration(
         color: theme.isDarkMode
             ? theme.surfaceColor.withValues(alpha: 0.8)
-            : (isAura
-                ? Colors.white.withValues(alpha: 0.85)
-                : Colors.white.withValues(alpha: 0.08)),
+            : Colors.white.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(35),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(
-                alpha: theme.isDarkMode ? 0.4 : (isAura ? 0.05 : 0.2)),
+                alpha: theme.isDarkMode ? 0.4 : 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -293,9 +297,7 @@ class _MainScreenState extends State<MainScreen> {
         border: Border.all(
           color: theme.isDarkMode
               ? Colors.white.withValues(alpha: 0.05)
-              : (isAura
-                  ? Colors.white.withValues(alpha: 0.5)
-                  : Colors.white.withValues(alpha: 0.1)),
+              : Colors.white.withValues(alpha: 0.5),
         ),
       ),
       child: ClipRRect(

@@ -106,7 +106,7 @@ class PlaylistScreen extends StatelessWidget {
     final isDark = theme.isDarkMode;
 
     return Scaffold(
-      backgroundColor: isAura ? Colors.transparent : theme.backgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -275,7 +275,7 @@ class _PlaylistDetailScreenState extends State<PlaylistDetailScreen> {
     final playlistSongs = musicProvider.songs.where((s) => playlist.songIds.contains(s.id.toString())).toList();
 
     return Scaffold(
-      backgroundColor: isAura ? (isDark ? theme.backgroundColor : Colors.white) : theme.backgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,

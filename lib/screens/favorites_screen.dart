@@ -26,7 +26,7 @@ class FavoritesScreen extends StatelessWidget {
     ).toList();
 
     return Scaffold(
-      backgroundColor: isAura ? Colors.transparent : theme.backgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
